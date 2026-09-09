@@ -379,7 +379,7 @@ body{
 /* ============================= 백엔드 설정 (Google Apps Script) =============================
    아래 URL을 Apps Script 프로젝트를 웹앱으로 배포한 뒤 받는 주소로 바꿔주세요.
    (배포 방법은 함께 전달된 안내를 참고하세요) */
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/여기에_배포된_웹앱_URL을_붙여넣으세요/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSC09xHX_xnYMxstx10S_SvFwUP7Z1PXMVQ-vkLRxtIvqYZny67oafdzdOLc8B6RGy/exec';
 
 /* ============================= 데이터 모델 ============================= */
 function blankLines(arr){ return (arr||[]).map(t=> typeof t==='string' ? {text:t,tag:'',hasAttachment:false,attachmentContent:''} : t); }
@@ -868,7 +868,7 @@ function closeTocPanelMobile(){ if(window.innerWidth<=860){ document.getElementB
 
 /* ============================= 저장 / 보관함 (Google Apps Script 백엔드) ============================= */
 function isConfigured(){
-  if(APPS_SCRIPT_URL.indexOf('https://script.google.com/macros/s/AKfycbwSC09xHX_xnYMxstx10S_SvFwUP7Z1PXMVQ-vkLRxtIvqYZny67oafdzdOLc8B6RGy/exec')>-1){
+  if(APPS_SCRIPT_URL.indexOf('여기에_배포된')>-1){
     alert('먼저 코드 상단의 APPS_SCRIPT_URL 값을 배포한 Apps Script 웹앱 주소로 바꿔주세요.\n(전달된 배포 안내를 참고하세요)');
     return false;
   }
