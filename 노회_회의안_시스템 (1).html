@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>중서부 한미노회 · 정기노회 회의안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1E2A44;
+  --ink-soft:#3B4A6B;
+  --paper:#F6F1E7;
+  --paper-deep:#EFE7D6;
+  --edge:#D9CFBB;
+  --gold:#A9822C;
+  --gold-soft:#DFC98C;
+  --maroon:#7A2E2E;
+  --maroon-soft:#F1DCDA;
+  --navy-soft:#DDE3EF;
+  --sub:#6b6a5e;
+  --white:#FFFDF8;
+  --shadow: 0 1px 2px rgba(30,42,68,.06), 0 8px 24px rgba(30,42,68,.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background: linear-gradient(180deg,#EAE3D2 0%, #E3D9C4 100%);
+  color:var(--ink);
+  min-height:100vh;
+}
+#app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ---------- Toolbar ---------- */
+.toolbar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;
+  background:var(--ink);
+  color:var(--white);
+  flex-wrap:wrap;
+}
+.toolbar .brand{
+  font-family:'Noto Serif KR',serif;
+  font-weight:600;font-size:15px;
+  letter-spacing:.02em;
+  margin-right:auto;
+  white-space:nowrap;
+}
+.toolbar .brand small{display:block;font-family:'Noto Sans KR',sans-serif;font-weight:400;font-size:11px;color:#B9C2D6;}
+.tbtn{
+  appearance:none;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.06);color:var(--white);
+  padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;
+  cursor:pointer;transition:background .15s ease;white-space:nowrap;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.tbtn:hover{background:rgba(255,255,255,.16);}
+.tbtn.primary{background:var(--gold);border-color:var(--gold);color:#241C08;font-weight:700;}
+.tbtn.primary:hover{background:#BC943A;}
+.tbtn.mode-locked{background:var(--maroon-soft);color:var(--maroon);border-color:var(--maroon-soft);}
+.tbtn.mode-edit{background:var(--gold-soft);color:#4a3a05;border-color:var(--gold-soft);}
+.savebadge{font-size:12px;color:#B9C2D6;white-space:nowrap;}
+
+/* ---------- Workspace ---------- */
+.workspace{display:flex;flex:1;min-height:0;}
+#tocPanel{
+  width:270px;flex:0 0 270px;
+  background:var(--paper-deep);
+  border-right:1px solid var(--edge);
+  padding:18px 14px 40px;
+  overflow-y:auto;
+  max-height:calc(100vh - 54px);
+  position:sticky;top:54px;align-self:flex-start;
+}
+#tocPanel h3{
+  font-family:'Noto Serif KR',serif;font-size:13px;color:var(--sub);
+  margin:0 0 10px 4px;font-weight:600;letter-spacing:.03em;
+}
+.toc-item{
+  display:block;width:100%;text-align:left;
+  background:none;border:none;cursor:pointer;
+  padding:7px 8px;border-radius:6px;
+  font-family:'Noto Serif KR',serif;font-size:13.5px;color:var(--ink-soft);
+  line-height:1.4;
+}
+.toc-item:hover{background:var(--navy-soft);}
+.toc-item .n{color:var(--gold);font-weight:700;margin-right:6px;}
+.toc-item.active{background:var(--ink);color:var(--white);}
+.toc-item.active .n{color:var(--gold-soft);}
+.toc-sub{padding-left:20px;font-size:12.5px;color:var(--sub);}
+.toc-sub:hover{background:var(--navy-soft);}
+.backbar{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.backbtn{
+  background:var(--white);border:1px solid var(--edge);
+  border-radius:7px;padding:7px 10px;font-size:12.5px;
+  cursor:pointer;color:var(--ink-soft);font-weight:600;
+}
+.backbtn:disabled{opacity:.35;cursor:default;}
+
+#docPanel{flex:1;min-width:0;padding:32px 20px 120px;display:flex;flex-direction:column;align-items:center;}
+
+/* ---------- Paper / document ---------- */
+.page{
+  width:100%;max-width:760px;
+  background:var(--paper);
+  border:1px solid var(--edge);
+  box-shadow:var(--shadow);
+  padding:46px 52px;
+  margin-bottom:26px;
+  border-radius:2px;
+  position:relative;
+}
+.page::before{
+  content:"";position:absolute;inset:10px;
+  border:1px solid var(--edge);pointer-events:none;opacity:.55;
+}
+.cover{text-align:center;}
+.emblem{margin:6px auto 18px;width:74px;height:74px;}
+.cover h1{
+  font-family:'Noto Serif KR',serif;font-weight:700;
+  font-size:26px;line-height:1.45;margin:4px 0 2px;color:var(--ink);
+}
+.cover .ordinal-field{
+  font-family:'Noto Serif KR',serif;font-weight:700;font-size:26px;
+  color:var(--maroon);
+}
+.cover .en-title{
+  font-size:14px;color:var(--sub);margin:14px 0 26px;line-height:1.7;
+}
+.cover .rule{width:64px;height:2px;background:var(--gold);margin:22px auto;}
+.cover .dt{font-family:'Noto Serif KR',serif;font-size:17px;margin:20px 0 2px;}
+.cover .venue-card{
+  margin:34px auto 0;padding:18px 22px;border:1px solid var(--edge);
+  background:var(--white);border-radius:6px;max-width:420px;
+}
+.cover .venue-card .host{font-family:'Noto Serif KR',serif;font-weight:600;font-size:17px;color:var(--maroon);}
+.cover .venue-card .pastor{font-size:13.5px;color:var(--ink-soft);margin-top:6px;}
+.cover .venue-card .addr{font-size:12.5px;color:var(--sub);margin-top:2px;}
+
+.doc-header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+.doc-header .org{font-size:11.5px;color:var(--sub);text-align:center;letter-spacing:.03em;}
+.doc-header h2{
+  font-family:'Noto Serif KR',serif;font-size:19px;text-align:center;
+  margin:10px 0 14px;color:var(--ink);
+}
+.meta-row{display:flex;gap:24px;justify-content:center;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
+.meta-row b{color:var(--ink);}
+
+.roman-block{margin:20px 0 26px;}
+.roman-block h4{
+  font-family:'Noto Serif KR',serif;font-size:14.5px;color:var(--maroon);
+  margin:0 0 8px;display:flex;align-items:center;gap:8px;
+}
+.roman-block h4 .chair{font-size:12px;color:var(--sub);font-weight:400;font-family:'Noto Sans KR',sans-serif;}
+.role-grid{display:grid;grid-template-columns:86px 1fr;gap:5px 10px;font-size:13px;}
+.role-grid .k{color:var(--sub);}
+.role-grid input{
+  border:none;border-bottom:1px dotted var(--edge);background:transparent;
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--ink);
+  padding:2px 2px;width:100%;
+}
+.role-grid input:disabled{color:var(--ink);opacity:1;}
+.role-grid input:focus{outline:none;border-bottom:1px solid var(--gold);}
+
+/* section blocks (items 1-12) */
+.section-block{margin:0 0 30px;scroll-margin-top:70px;}
+.section-block .sec-title{
+  display:flex;align-items:baseline;gap:10px;
+  font-family:'Noto Serif KR',serif;font-size:15.5px;font-weight:600;
+  color:var(--ink);border-bottom:1px solid var(--edge);padding-bottom:8px;margin-bottom:12px;
+}
+.section-block .sec-title .num{
+  color:var(--white);background:var(--ink);border-radius:5px;
+  width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;flex:0 0 auto;
+}
+.section-block .sec-title input.title-edit{
+  font-family:'Noto Serif KR',serif;font-weight:600;font-size:15.5px;
+  border:none;background:transparent;flex:1;color:var(--ink);
+}
+.section-block .sec-title input.title-edit:focus{outline:none;border-bottom:1px solid var(--gold);}
+
+.sub-block{margin:0 0 18px;padding-left:2px;scroll-margin-top:70px;}
+.sub-block .sub-label{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Noto Serif KR',serif;font-size:13.5px;font-weight:600;color:var(--ink-soft);
+  margin-bottom:6px;
+}
+.sub-block .sub-label input{
+  font-family:'Noto Serif KR',serif;font-weight:600;font-size:13.5px;color:var(--ink-soft);
+  border:none;background:transparent;flex:1;
+}
+.sub-block .sub-label input:focus{outline:none;border-bottom:1px solid var(--gold);}
+.sub-block .subdel{
+  background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;
+}
+
+.line{
+  display:flex;align-items:flex-start;gap:8px;margin:6px 0;
+  padding:5px 8px;border-radius:5px;
+}
+.line:hover{background:rgba(169,130,44,.06);}
+.line .line-num{color:var(--gold);font-size:12px;font-weight:700;margin-top:8px;flex:0 0 16px;}
+.line .line-text{
+  flex:1;border:none;border-bottom:1px solid transparent;background:transparent;
+  font-family:'Noto Sans KR',sans-serif;font-size:13.5px;color:var(--ink);
+  padding:6px 2px;line-height:1.5;resize:none;min-height:32px;
+}
+.line .line-text:focus{outline:none;border-bottom:1px solid var(--gold);}
+.line .tag-pill{
+  flex:0 0 auto;font-size:11px;font-weight:700;border:none;border-radius:11px;
+  padding:5px 9px;margin-top:2px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+}
+.tag-report{background:var(--navy-soft);color:var(--ink-soft);}
+.tag-motion{background:var(--maroon-soft);color:var(--maroon);}
+.tag-none{background:transparent;color:var(--sub);border:1px dashed var(--edge)!important;}
+.line .attach-chip{
+  flex:0 0 auto;font-size:11.5px;font-weight:600;border:1px solid var(--gold);
+  background:var(--gold-soft);color:#4a3a05;border-radius:11px;padding:5px 10px;
+  cursor:pointer;white-space:nowrap;margin-top:2px;
+}
+.line .line-del{
+  flex:0 0 auto;background:none;border:none;color:#b04a4a;cursor:pointer;
+  font-size:14px;padding:4px;margin-top:3px;
+}
+.addline-btn, .addsub-btn{
+  background:none;border:1px dashed var(--edge);color:var(--sub);
+  font-size:12.5px;padding:7px 12px;border-radius:6px;cursor:pointer;margin-top:4px;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.addline-btn:hover, .addsub-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* TOC-in-document (item 4) */
+.toc-render{border:1px solid var(--edge);background:var(--white);border-radius:6px;overflow:hidden;}
+.toc-render .toc-row{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid var(--edge);cursor:pointer;font-size:13.5px;
+  font-family:'Noto Serif KR',serif;color:var(--ink);
+}
+.toc-render .toc-row:last-child{border-bottom:none;}
+.toc-render .toc-row:hover{background:var(--paper-deep);}
+.toc-render .toc-row .n{
+  width:22px;height:22px;border-radius:5px;background:var(--ink);color:var(--white);
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto;
+}
+.toc-render .toc-subrow{
+  padding:6px 14px 6px 44px;font-size:12.5px;color:var(--sub);cursor:pointer;
+  border-bottom:1px dashed var(--edge);
+}
+.toc-render .toc-subrow:hover{background:var(--paper-deep);color:var(--ink);}
+
+.next-grid{display:grid;grid-template-columns:100px 1fr;gap:6px 12px;font-size:13.5px;max-width:480px;}
+.next-grid .k{color:var(--sub);}
+.next-grid input{border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13.5px;padding:3px 2px;width:100%;font-family:'Noto Sans KR',sans-serif;}
+.next-grid input:focus{outline:none;border-bottom:1px solid var(--gold);}
+
+.footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
+
+/* ---------- Modal ---------- */
+#modalOverlay{
+  position:fixed;inset:0;background:rgba(20,20,15,.5);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+#modalOverlay.hidden{display:none;}
+.modal-box{
+  background:var(--white);max-width:560px;width:100%;max-height:80vh;overflow-y:auto;
+  border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
+}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--edge);background:var(--paper-deep);
+  border-radius:8px 8px 0 0;
+}
+.modal-head h3{font-family:'Noto Serif KR',serif;font-size:15px;margin:0;color:var(--ink);}
+.modal-close{
+  background:var(--ink);color:var(--white);border:none;border-radius:50%;
+  width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;
+}
+.modal-body{padding:18px 20px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink-soft);}
+.modal-body textarea{
+  width:100%;min-height:160px;border:1px solid var(--edge);border-radius:6px;padding:10px;
+  font-family:'Noto Sans KR',sans-serif;font-size:13.5px;line-height:1.6;
+}
+
+/* ---------- Archive panel ---------- */
+#archiveOverlay{position:fixed;inset:0;background:rgba(20,20,15,.5);display:flex;justify-content:flex-end;z-index:90;}
+#archiveOverlay.hidden{display:none;}
+.archive-panel{width:100%;max-width:420px;background:var(--paper);height:100%;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.2);}
+.archive-head{padding:18px 20px;border-bottom:1px solid var(--edge);background:var(--ink);color:var(--white);display:flex;justify-content:space-between;align-items:center;}
+.archive-head h3{font-family:'Noto Serif KR',serif;margin:0;font-size:16px;}
+.archive-body{padding:16px 20px;}
+.archive-search{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;font-size:13.5px;margin-bottom:14px;font-family:'Noto Sans KR',sans-serif;}
+.archive-item{
+  background:var(--white);border:1px solid var(--edge);border-radius:7px;padding:12px 14px;
+  margin-bottom:10px;cursor:pointer;
+}
+.archive-item:hover{border-color:var(--gold);}
+.archive-item .t{font-family:'Noto Serif KR',serif;font-weight:600;color:var(--ink);font-size:14px;}
+.archive-item .d{font-size:12px;color:var(--sub);margin-top:3px;}
+.archive-empty{color:var(--sub);font-size:13px;text-align:center;margin-top:30px;}
+.archive-actions{display:flex;gap:8px;margin-bottom:14px;}
+.archive-actions button{
+  flex:1;padding:9px;border-radius:7px;border:1px solid var(--edge);background:var(--white);
+  font-size:12.5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;color:var(--ink-soft);
+}
+.archive-actions button.danger{color:var(--maroon);border-color:var(--maroon-soft);}
+
+@media (max-width:860px){
+  #tocPanel{position:fixed;left:0;top:54px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .2s ease;max-height:none;width:82%;box-shadow:8px 0 30px rgba(0,0,0,.25);}
+  #tocPanel.open{transform:translateX(0);}
+  .page{padding:30px 20px;}
+  .toolbar .brand small{display:none;}
+}
+@media print{
+  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,.line-del,.addline-btn,.addsub-btn,.subdel{display:none!important;}
+  #docPanel{padding:0;}
+  .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
+  body{background:#fff;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="toolbar">
+    <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
+    <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
+    <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
+    <span class="savebadge" id="saveBadge">저장 안 됨</span>
+    <button class="tbtn" onclick="saveMeeting()">저장</button>
+    <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
+    <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
+    <button class="tbtn primary" onclick="newMeeting()">새 회의</button>
+  </div>
+
+  <div class="workspace">
+    <aside id="tocPanel">
+      <div class="backbar">
+        <button class="backbtn" id="backBtn" onclick="goBack()" disabled>← 이전 회순</button>
+      </div>
+      <h3>회순 (docket)</h3>
+      <div id="tocList"></div>
+    </aside>
+    <main id="docPanel"></main>
+  </div>
+</div>
+
+<div id="modalOverlay" class="hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modalTitle">첨부서류</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div id="archiveOverlay" class="hidden">
+  <div class="archive-panel">
+    <div class="archive-head">
+      <h3>보관함 · 검색</h3>
+      <button class="modal-close" onclick="closeArchive()">✕</button>
+    </div>
+    <div class="archive-body">
+      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="renderArchiveList()">
+      <div class="archive-actions">
+        <button onclick="refreshArchiveIndex()">🔄 목록 새로고침</button>
+        <button onclick="doContentSearch()">🔎 내용 전체 검색</button>
+      </div>
+      <div id="archiveList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================= 백엔드 설정 (Google Apps Script) =============================
+   아래 URL을 Apps Script 프로젝트를 웹앱으로 배포한 뒤 받는 주소로 바꿔주세요.
+   (배포 방법은 함께 전달된 안내를 참고하세요) */
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/여기에_배포된_웹앱_URL을_붙여넣으세요/exec';
+
+/* ============================= 데이터 모델 ============================= */
+function blankLines(arr){ return (arr||[]).map(t=> typeof t==='string' ? {text:t,tag:'',hasAttachment:false,attachmentContent:''} : t); }
+
+function makeSection(num,title,kind,extra){
+  return Object.assign({num,title,kind, lines: kind==='lines'?[]:undefined, subs: kind==='sub'?[]:undefined}, extra||{});
+}
+
+function defaultSkeleton(){
+  return {
+    s1: makeSection('1','개회 (Call to Order)','static'),
+    s2: makeSection('2','회원점명 & 방문자 소개와 인사','lines',{lines:[]}),
+    s3: makeSection('3','개회 정족수 선언','lines',{lines:[]}),
+    s4: makeSection('4','회순 채택 (Adoption of the Docket)','toc'),
+    s5: makeSection('5','전 회의록 채택','lines',{lines:[{text:'전 회의록 채택',tag:'motion',hasAttachment:true,attachmentContent:''}]}),
+    s6: makeSection('6','임원 보고 및 동의안','sub',{subs:[
+        {key:'A',label:'노회장 보고 (Moderator Report)',lines:[]},
+        {key:'B',label:'사무총장 보고 및 일정 (Executive Presbyter Report)',lines:[]},
+        {key:'C',label:'서기 보고 (Stated Clerk Report)',lines:[]},
+        {key:'D',label:'재정 보고 (Treasurer Report)',lines:[]},
+        {key:'E',label:'임원회 보고 및 동의안 (Presbytery Officers Agendas)',lines:[]}
+      ]}),
+    s7: makeSection('7','실행위원회 동의안','lines',{lines:[]}),
+    s8: makeSection('8','각 위원회 보고 및 동의안','sub',{subs:[
+        {key:'A',label:'공천 위원회 (Nominating Committee)',lines:[]},
+        {key:'B',label:'교육 및 목사 후보생 위원회 (Educational and Preparation for Ministry Committee)',lines:[]},
+        {key:'C',label:'목회 위원회 (Committee on Ministry)',lines:[]},
+        {key:'D',label:'선교 및 교회발전 위원회 (Mission and Church Development Committee)',lines:[]},
+        {key:'E',label:'대표 및 정책기록위원회 (Committee on Representation and Policy and Record)',lines:[]},
+        {key:'F',label:'법인 이사회 (Board of Trustee)',lines:[]},
+        {key:'G',label:'로렌스장로교회 행정전권 위원회',lines:[]},
+        {key:'H',label:'한사랑복음장로교회 행정전권 위원회',lines:[]},
+        {key:'I',label:'상임사법전권위원회 (Permanent Judicial Commission)',lines:[]}
+      ]}),
+    s9: makeSection('9','다음 노회 일시 및 장소','next',{data:{ordinal:'',dateDisplay:'',venue:'',address:''}}),
+    s10: makeSection('10','광고 (Announcements)','lines',{lines:[]}),
+    s11: makeSection('11','폐회 기도 (Closing Prayer)','lines',{lines:[{text:''}]}),
+    s12: makeSection('12','폐회 (Adjourn)','static')
+  };
+}
+
+function blankMeeting(){
+  return {
+    id: '',
+    ordinal:'',
+    dateDisplay:'',
+    timeDisplay:'오후 7 시',
+    dateISO:'',
+    hostChurchKo:'',
+    venueNote:'',
+    hostPastorLine:'',
+    hostAddress:'',
+    orgAddress:'8257 Harrison Street, Niles, IL 60714',
+    worship:{songLeader:'',emcee:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
+    installation:{emcee:'',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'},
+    meetingChair:'',
+    sections: defaultSkeleton()
+  };
+}
+
+// 105차 회의록 내용을 기본 예시로 채워둡니다 (편집/삭제 가능)
+function seedMeeting105(){
+  var m = blankMeeting();
+  m.id='105'; m.ordinal='105';
+  m.dateDisplay='2026 년 2 월 9 일 (월)'; m.timeDisplay='오후 7 시'; m.dateISO='2026-02-09';
+  m.hostChurchKo='에버그린 장로교회'; m.venueNote='(시카고노회 소속)';
+  m.hostPastorLine='한윤천 목사 시무'; m.hostAddress='196 Highland Ave., Wheeling, IL, 60090';
+  m.worship={songLeader:'조진호 장로(블루밍턴/노말장로교회)',emcee:'최병훈 목사(사무총장)',prayer:'정환곤 장로(블루밍턴/노말장로교회)',preacher:'황종언 목사(블루밍턴/노말장로교회)',scripture:'마8:20, 빌3:14',sermonTitle:'하이에나의 들판, 표범의 고지',benediction:'한윤천 목사(에버그린 장로교회)'};
+  m.installation={emcee:'이임 노회장 권효섭 장로',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'};
+  m.meetingChair='노회장 황종언 목사';
+  var s = m.sections;
+  s.s2.lines = blankLines(['방문자, 첫 참석 총대소개, 총회 투자융자국(PILP) 박성주 목사']);
+  s.s3.lines = blankLines(['']);
+  s.s5.lines = [{text:'전 회의록 채택',tag:'motion',hasAttachment:true,attachmentContent:'104차 정기노회 회의록 전문 (첨부서류)'}];
+  s.s6.subs[0].lines = blankLines(['노회장 인사 및 보고']);
+  s.s6.subs[1].lines = blankLines([
+    '대회 초임목회자 교육 Wellspring 2025년 10월 20일-23일, New Harmony, IN',
+    '링컨트레일스 정기대회 2025년 10월 24일',
+    '연합장로교회 당회 방문 2025년 10월 26일',
+    'NKCPC 운영위원회 2025년 10월 27일-29일, 휴스턴',
+    '총회 중간공의회 전체 모임 2025년 11월 9일-12일, 루이빌 본부',
+    '언약교회 임직식 2025년 11월 23일',
+    '노회 상임사법전권위원회 2025년 12월 2일, 18일',
+    'CCKAP 이민1세 교회연구 Advisory Committee 2025년 12월 8일-10일, 네쉬빌',
+    '미국장로교 충성된 종이 되는 길 개정작업 2025년 12월 10일-12일, 네쉬빌 (이후 매주 화요일 영상회의)',
+    '블루밍턴/노말교회 임직식 2025년 12월 28일',
+    '링컨트레일스 특별대회 2026년 1월 8일',
+    '(예정) 링컨트레일스 대회 Boundary Training 2월 3일-4일, 인디폴 2교회',
+    '(예정) CCKAP 이민1세 연구 소개 서부지역 목사모임 2월 16일-18일, 피닉스',
+    '(예정) 충성된 종이 되는 길 최종 개정작업 2월 19일-21일, 루이빌 본부',
+    '(예정) 학원목회연구회 컨퍼런스 2월 23일-26일, 휴스턴한인중앙장로교회 (강사 초청)',
+    '(예정) CCKAP 총회 기관목회 참여자 모임 3월 3일-5일, 뉴저지 소망교회',
+    '(예정) CCKAP 총회 헌의안 준비모임 3월 9일-11일, 리치몬드제일장로교회',
+    '(예정) 중서부한미노회 목사 영입교육 5월 5일-7일, 노회 회의실 (4명)',
+    '(예정) SOLT 대회 사무총장 연례회의 4월 6일-8일',
+    '(예정) CCKAP용천노회 연합컨퍼런스 4월 21일-23일',
+    '(예정) 출장 휴가 4월 16,17,27,28일',
+    '(예정) NCKPC 실행위원회 및 연례회의 5월 11일-15일, 휴스턴'
+  ]);
+  s.s6.subs[2].lines = blankLines([
+    '시카고한인연합장로교회 은퇴 및 휴무장로 5인의 시정 청원의 건 (10/13)',
+    '시카고한인연합장로교회 임봉규 장로의 시정 청원의 건 (12/1)',
+    '미드웨스트장로교회 공천위원회 이의 제기 관련 헌법적 자문 요청에 대한 답변 (11/21)'
+  ]);
+  s.s6.subs[3].lines = [{text:'2025년 결산보고 (첨부서류, 법인이사회 감사보고 참고)',tag:'report',hasAttachment:true,attachmentContent:''}];
+  s.s6.subs[4].lines = [
+    {text:'2025년 10월 12일 Boundary Training 참석자 명단 보고',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'2026년 전환기목회 교육 신청(Korean Transitional Ministry Education) 7월 27일-31일, 노회원 신청시 할인',tag:'report',hasAttachment:true,attachmentContent:''},
+    {text:'총회 총대 공천위원회 공천 결의(추인): 제227차 GA(6월 27일-7월 2일), 정지훈 목사, 김응두 장로',tag:'motion',hasAttachment:false,attachmentContent:''},
+    {text:'이민1세 교회 목회 전망연구를 위해 총회 지원을 요청하는 헌의안 제안(CCKAP)과 노회대표 정지훈 목사 추천',tag:'motion',hasAttachment:true,attachmentContent:''},
+    {text:'노회 정관 개정안',tag:'motion',hasAttachment:true,attachmentContent:''},
+    {text:'중서부한미노회 경조사 정책 Policy',tag:'motion',hasAttachment:true,attachmentContent:''}
+  ];
+  s.s7.lines = [{text:'공천위원 추천: 박규완 목사(2026년조), 류한국 목사(2028년조), 문진규 장로(2028년조)',tag:'motion',hasAttachment:false,attachmentContent:''}];
+  var c8 = s.s8.subs;
+  c8[0].lines = blankLines(['2026년 위원회 조직개정안 참고']);
+  c8[1].lines = [{text:'정유경 전도사(시카고연합장로교회 찬양사역자) 목사 지망생 지원 서류·영상 면담',tag:'report'},
+    {text:'장로(후보자)·집사를 위한 헌법 교육(미국장로교 운영지침) 실시 — 강사: 최병훈 목사, 연 상·하반기 각 2회, 수강료 1인 20불 / 교회 최대 100불',tag:'motion'}].map(o=>Object.assign({hasAttachment:false,attachmentContent:''},o));
+  c8[2].lines = [
+    {text:'천서희 목사, 산호세임마누엘 장로교회 부목사 사역 시작 (2025년 12월)',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'한사랑복음장로교회 임시당회장으로 이만석 목사 파송(2월부터)',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'박선규 목사(총회), 조지아장로교회 청빙으로 대서양 한미노회 이명 요청',tag:'motion',hasAttachment:true,attachmentContent:'Terms of Call 참고'},
+    {text:'포트웨인 한마음 장로교회, 박인천 목사 위임 청원 (임시목회→위임목회, 노회 3/4 통과 필요)',tag:'motion',hasAttachment:true,attachmentContent:''},
+    {text:'미국장로교 목사회원 영입 교육 — 일정 5/5-5/7, 등록비 $500, 강사 한윤천·최병훈 목사, 대상 박중헌·이수연 목사 등 전입 목사',tag:'motion',hasAttachment:false,attachmentContent:''},
+    {text:'PCUSA 총회 Presbytery Grant for Congregational Transformation 신청 및 소위원회 구성(위원장 변해성 목사)',tag:'motion',hasAttachment:true,attachmentContent:''}
+  ];
+  c8[3].lines = [
+    {text:'남선교회 연합회 한국 대학생(인솔 1명 포함 10명) 시카고 지역 방문, 2월 8일-10일',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'노회 소속 교회 연합 찬양제 준비',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'노회내 EM 청소년·청년 연합사역 추진 (김대환 목사 중심)',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'NCKPC 학원 목회 컨퍼런스 참석 담임목회자 항공료 지원(1인, $500 이내)',tag:'motion',hasAttachment:false,attachmentContent:''}
+  ];
+  c8[4].lines = [
+    {text:'각 교회 당회서기는 당회록·정관·내규 점검 후 노회 전 5시부터 검토 제출',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'적법한 당회록 기록을 위한 장로 교육 계획',tag:'report',hasAttachment:false,attachmentContent:''}
+  ];
+  c8[5].lines = [{text:'2025년 노회 재정 감사 안 — 총수입 $281,606.84 / 총지출 $260,454.02 / 잔고 $21,152.82, 은행잔고(12/31) $19,362.82, 상회비 완납 $89,229, PILP CD $80,000+이자(2/26/26 만기)',tag:'report',hasAttachment:true,attachmentContent:''},
+    {text:'한사랑복음장로교회 전 복음교회 부지·건물 매각 요청 — 다음 회기로 연기',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'법인이사회 행정수행지침서 "교회 합병절차 Policy" 의견 수렴',tag:'report',hasAttachment:true,attachmentContent:''},
+    {text:'PILP CD(2/26/26 만기) 15개월 3.25%로 Renewal',tag:'motion',hasAttachment:false,attachmentContent:''}
+  ];
+  c8[6].lines = [{text:'보고사항 없음',tag:'',hasAttachment:false,attachmentContent:''}];
+  c8[7].lines = [{text:'보고사항 없음',tag:'',hasAttachment:false,attachmentContent:''}];
+  c8[8].lines = [{text:'서면보고 참고',tag:'report',hasAttachment:true,attachmentContent:''}];
+  s.s9.data = {ordinal:'106',dateDisplay:'2026 년 6 월 8 일 (월) 오후 7 시',venue:'두나미스 장로교회(이성은 목사 시무)',address:'800 S Beau Dr Des Plaines IL 60016'};
+  return m;
+}
+
+/* ============================= 전역 상태 ============================= */
+var state = { meeting: seedMeeting105() };
+var editMode = false;
+var navStack = [];
+var currentAnchor = 's1';
+var io = null;
+var dirty = false;
+
+/* ---------- 경로 유틸 ---------- */
+function getPath(obj, path){ return path.reduce((o,k)=> (o==null?o:o[k]), obj); }
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function markDirty(){ dirty=true; document.getElementById('saveBadge').textContent='저장 안 된 변경사항 있음'; document.getElementById('saveBadge').style.color='#e2b04a'; }
+function markClean(){ dirty=false; document.getElementById('saveBadge').textContent='저장됨'; document.getElementById('saveBadge').style.color='#B9C2D6'; }
+
+/* 텍스트 입력: 구조를 바꾸지 않으므로 다시 그리지 않음(커서 유지) */
+function setField(path, value){
+  var parent = getPath(state, path.slice(0,-1));
+  parent[path[path.length-1]] = value;
+  markDirty();
+  updateBrand();
+}
+/* 구조가 바뀌는 변경: 다시 그림 */
+function setFieldRerender(path, value){ setField(path, value); render(); }
+
+function addLine(path){
+  var arr = getPath(state, path);
+  arr.push({text:'',tag:'',hasAttachment:false,attachmentContent:''});
+  markDirty(); render();
+}
+function removeLine(path, idx){
+  var arr = getPath(state, path);
+  arr.splice(idx,1);
+  markDirty(); render();
+}
+function cycleTag(path, idx){
+  var arr = getPath(state, path);
+  var order = ['', 'report', 'motion'];
+  var cur = order.indexOf(arr[idx].tag||'');
+  arr[idx].tag = order[(cur+1)%order.length];
+  markDirty(); render();
+}
+function toggleAttach(path, idx){
+  var arr = getPath(state, path);
+  arr[idx].hasAttachment = !arr[idx].hasAttachment;
+  markDirty(); render();
+}
+function addSub(sKey){
+  var subs = state.meeting.sections[sKey].subs;
+  var letter = String.fromCharCode(65+subs.length);
+  subs.push({key:letter,label:'새 위원회 / 보고 항목',lines:[]});
+  markDirty(); render();
+}
+function removeSub(sKey, idx){
+  state.meeting.sections[sKey].subs.splice(idx,1);
+  markDirty(); render();
+}
+
+/* ============================= 렌더링 ============================= */
+function tagLabel(tag){ return tag==='report' ? '보고' : tag==='motion' ? '동의안' : '구분'; }
+function tagClass(tag){ return tag==='report' ? 'tag-report' : tag==='motion' ? 'tag-motion' : 'tag-none'; }
+
+function renderLineRow(pathArr, line, idx){
+  var pathAttr = JSON.stringify(pathArr);
+  var lockedAttr = editMode ? '' : 'disabled';
+  var html = '<div class="line">';
+  html += '<span class="line-num">'+(idx+1)+'.</span>';
+  html += '<textarea class="line-text" '+lockedAttr+' rows="1" data-autogrow="1" oninput="setField('+esc(pathAttr).replace(/"/g,'&quot;')+'.concat(['+idx+',\\'text\\']), this.value); autoGrow(this);" placeholder="내용을 입력하세요">'+esc(line.text)+'</textarea>';
+  if(editMode){
+    html += '<button class="tag-pill '+tagClass(line.tag)+'" onclick=\'cycleTag('+pathAttr+','+idx+')\'>'+tagLabel(line.tag)+'</button>';
+  } else if(line.tag){
+    html += '<span class="tag-pill '+tagClass(line.tag)+'">'+tagLabel(line.tag)+'</span>';
+  }
+  if(editMode){
+    html += '<button class="tag-pill" style="background:'+(line.hasAttachment?'var(--gold-soft)':'transparent')+';border:1px dashed var(--edge);color:'+(line.hasAttachment?'#4a3a05':'var(--sub)')+'" onclick=\'toggleAttach('+pathAttr+','+idx+')\'>📎 첨부</button>';
+  } else if(line.hasAttachment){
+    html += '<button class="attach-chip" onclick=\'openAttachment('+pathAttr+','+idx+')\'>📎 첨부서류 참고</button>';
+  }
+  if(editMode){
+    html += '<button class="line-del" onclick=\'removeLine('+pathAttr+','+idx+')\' title="삭제">✕</button>';
+  }
+  html += '</div>';
+  if(editMode && line.hasAttachment){
+    html += '<div style="margin:0 0 10px 24px;"><textarea placeholder="첨부 내용 메모 (예: 파일명, 요약, 링크)" style="width:100%;min-height:56px;border:1px solid var(--edge);border-radius:6px;padding:8px;font-family:\\'Noto Sans KR\\',sans-serif;font-size:12.5px;" oninput="setField('+esc(pathAttr).replace(/"/g,'&quot;')+'.concat(['+idx+',\\'attachmentContent\\']), this.value)">'+esc(line.attachmentContent)+'</textarea></div>';
+  }
+  return html;
+}
+
+function renderLinesBlock(pathArr, lines){
+  var html='';
+  lines.forEach(function(line,idx){ html += renderLineRow(pathArr, line, idx); });
+  if(editMode){
+    html += '<button class="addline-btn" onclick=\'addLine('+JSON.stringify(pathArr)+')\'>+ 항목 추가</button>';
+  }
+  if(!editMode && lines.length===0){
+    html += '<div style="color:var(--sub);font-size:13px;">— 내용 없음 —</div>';
+  }
+  return html;
+}
+
+function tocRows(){
+  var s = state.meeting.sections;
+  var order=['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+  var html='';
+  order.forEach(function(k){
+    var sec=s[k];
+    html += '<div class="toc-row" onclick="gotoSection(\\''+k+'\\')"><span class="n">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
+    if(sec.kind==='sub'){
+      sec.subs.forEach(function(sub,i){
+        html += '<div class="toc-subrow" onclick="event.stopPropagation();gotoSection(\\''+k+'\\',\\''+i+'\\')">'+esc(sub.key)+'. '+esc(sub.label)+'</div>';
+      });
+    }
+  });
+  return html;
+}
+
+function renderSectionTitle(k, sec){
+  var lockedAttr = editMode?'':'disabled';
+  if(editMode){
+    return '<div class="sec-title"><span class="num">'+sec.num+'</span><input class="title-edit" '+lockedAttr+' value="'+esc(sec.title)+'" oninput="setField([\\'meeting\\',\\'sections\\',\\''+k+'\\',\\'title\\'], this.value)"></div>';
+  }
+  return '<div class="sec-title"><span class="num">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
+}
+
+function renderSection(k){
+  var sec = state.meeting.sections[k];
+  var html = '<div class="section-block" id="sec-'+k+'" data-anchor="'+k+'">';
+  html += renderSectionTitle(k, sec);
+
+  if(sec.kind==='static'){
+    if(k==='s1'){
+      html += '<div style="font-size:13px;color:var(--sub);">사회: '+esc(state.meeting.meetingChair||'—')+'</div>';
+    } else if(k==='s12'){
+      html += '<div style="font-size:13px;color:var(--sub);">제 '+esc(state.meeting.ordinal||'—')+'차 정기노회를 폐회합니다.</div>';
+    }
+  } else if(sec.kind==='lines'){
+    html += renderLinesBlock(['meeting','sections',k,'lines'], sec.lines);
+  } else if(sec.kind==='sub'){
+    sec.subs.forEach(function(sub, i){
+      var lockedAttr = editMode?'':'disabled';
+      html += '<div class="sub-block" id="sec-'+k+'-sub-'+i+'" data-anchor="'+k+'-sub-'+i+'">';
+      html += '<div class="sub-label">';
+      if(editMode){
+        html += '<input value="'+esc(sub.key+'. '+sub.label)+'" oninput="onSubLabelInput(this,\\''+k+'\\','+i+')">';
+        html += '<button class="subdel" onclick="removeSub(\\''+k+'\\','+i+')">삭제</button>';
+      } else {
+        html += '<span>'+esc(sub.key)+'. '+esc(sub.label)+'</span>';
+      }
+      html += '</div>';
+      html += renderLinesBlock(['meeting','sections',k,'subs',i,'lines'], sub.lines);
+      html += '</div>';
+    });
+    if(editMode){
+      html += '<button class="addsub-btn" onclick="addSub(\\''+k+'\\')">+ 위원회 / 보고 항목 추가</button>';
+    }
+  } else if(sec.kind==='toc'){
+    html += '<div class="toc-render">'+tocRows()+'</div>';
+  } else if(sec.kind==='next'){
+    var d = sec.data; var lockedAttr = editMode?'':'disabled';
+    html += '<div class="next-grid">';
+    html += '<div class="k">다음 회차</div><div>'+inputOrText(['meeting','sections','s9','data','ordinal'], d.ordinal, '제 ')+'</div>';
+    html += '<div class="k">일시</div><div>'+inputOrText(['meeting','sections','s9','data','dateDisplay'], d.dateDisplay)+'</div>';
+    html += '<div class="k">장소</div><div>'+inputOrText(['meeting','sections','s9','data','venue'], d.venue)+'</div>';
+    html += '<div class="k">주소</div><div>'+inputOrText(['meeting','sections','s9','data','address'], d.address)+'</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function inputOrText(pathArr, val, prefix){
+  var lockedAttr = editMode?'':'disabled';
+  var jsPath = JSON.stringify(pathArr);
+  if(editMode){
+    return (prefix||'')+'<input '+lockedAttr+' value="'+esc(val)+'" oninput="setField('+jsPath.replace(/"/g,'&quot;')+', this.value)" style="border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13.5px;padding:3px 2px;font-family:\\'Noto Sans KR\\',sans-serif;width:70%;">';
+  }
+  return (prefix||'')+esc(val||'—');
+}
+
+function onSubLabelInput(el, k, i){
+  var v = el.value;
+  var dotIdx = v.indexOf('.');
+  var key = dotIdx>0? v.slice(0,dotIdx).trim() : state.meeting.sections[k].subs[i].key;
+  var label = dotIdx>0? v.slice(dotIdx+1).trim() : v;
+  state.meeting.sections[k].subs[i].key = key;
+  state.meeting.sections[k].subs[i].label = label;
+  markDirty();
+}
+
+function roleField(labelKo, pathArr, val){
+  var lockedAttr = editMode?'':'disabled';
+  var jsPath = JSON.stringify(pathArr);
+  return '<div class="k">'+labelKo+'</div><div><input '+lockedAttr+' value="'+esc(val)+'" oninput="setField('+jsPath.replace(/"/g,'&quot;')+', this.value)"></div>';
+}
+
+function renderCover(){
+  var m = state.meeting;
+  var lockedAttr = editMode?'':'disabled';
+  var html = '<div class="page cover" id="page-cover" data-anchor="cover">';
+  html += '<svg class="emblem" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="#A9822C" stroke-width="2"/><path d="M50 20 L50 58 M36 34 L64 34" stroke="#1E2A44" stroke-width="6" stroke-linecap="round"/><path d="M50 58 C42 64,40 74,50 82 C60 74,58 64,50 58 Z" fill="#7A2E2E"/></svg>';
+  html += '<h1>중서부 한미노회</h1>';
+  html += '<h1>제 ';
+  html += editMode ? '<input style="width:60px;text-align:center;font-family:\\'Noto Serif KR\\',serif;font-weight:700;font-size:26px;color:var(--maroon);border:none;border-bottom:2px solid var(--gold);background:transparent;" value="'+esc(m.ordinal)+'" oninput="setField([\\'meeting\\',\\'ordinal\\'], this.value)">' : '<span class="ordinal-field">'+esc(m.ordinal||'—')+'</span>';
+  html += ' 차 정기 노회</h1>';
+  html += '<div class="en-title">The '+esc(m.ordinal||'—')+'<sup>th</sup> Stated Meeting of<br>Midwest Korean American Presbytery</div>';
+  html += '<div class="rule"></div>';
+  html += '<div class="dt">일시: '+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-size:17px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:220px;" value="'+esc(m.dateDisplay)+'" oninput="setField([\\'meeting\\',\\'dateDisplay\\'], this.value)">' : esc(m.dateDisplay||'—')) + '</div>';
+  html += '<div class="dt">'+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-size:17px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:160px;" value="'+esc(m.timeDisplay)+'" oninput="setField([\\'meeting\\',\\'timeDisplay\\'], this.value)">' : esc(m.timeDisplay||'—')) + '</div>';
+  html += '<div class="venue-card">';
+  html += '<div class="host">'+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-weight:600;font-size:17px;color:var(--maroon);border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostChurchKo)+'" oninput="setField([\\'meeting\\',\\'hostChurchKo\\'], this.value)">' : esc(m.hostChurchKo||'—')) + '</div>';
+  html += '<div class="pastor">'+ (editMode? '<input style="text-align:center;font-size:13.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostPastorLine)+'" oninput="setField([\\'meeting\\',\\'hostPastorLine\\'], this.value)">' : esc(m.hostPastorLine||'—')) + '</div>';
+  html += '<div class="addr">'+ (editMode? '<input style="text-align:center;font-size:12.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostAddress)+'" oninput="setField([\\'meeting\\',\\'hostAddress\\'], this.value)">' : esc(m.hostAddress||'—')) + '</div>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function renderPage2Header(){
+  var m = state.meeting;
+  var html = '<div class="page" id="page-header" data-anchor="header">';
+  html += '<div class="doc-header">';
+  html += '<div class="org">중서부 한미노회 · '+(editMode? '<input style="border:none;background:transparent;font-size:11.5px;text-align:center;border-bottom:1px dotted var(--edge);width:280px;" value="'+esc(m.orgAddress)+'" oninput="setField([\\'meeting\\',\\'orgAddress\\'], this.value)">':esc(m.orgAddress)) +'</div>';
+  html += '<h2>제 '+esc(m.ordinal||'—')+' 차 중서부 한미노회 정기노회 회의안 (Docket)</h2>';
+  html += '<div class="meta-row"><span><b>일시</b> : '+esc(m.dateDisplay||'—')+' '+esc(m.timeDisplay||'')+'</span><span><b>장소</b> : '+ (editMode? '<input style="border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13px;" value="'+esc(m.venueNote)+'" oninput="setField([\\'meeting\\',\\'venueNote\\'], this.value)" placeholder="(예: 시카고노회 소속)">' : esc(m.hostChurchKo+' '+(m.venueNote||''))) +'</span></div>';
+  html += '</div>';
+
+  html += '<div class="roman-block"><h4>I. 개회예배</h4><div class="role-grid">';
+  html += roleField('찬양인도', ['meeting','worship','songLeader'], m.worship.songLeader);
+  html += roleField('사회', ['meeting','worship','emcee'], m.worship.emcee);
+  html += roleField('기도', ['meeting','worship','prayer'], m.worship.prayer);
+  html += roleField('설교', ['meeting','worship','preacher'], m.worship.preacher);
+  html += roleField('본문', ['meeting','worship','scripture'], m.worship.scripture);
+  html += roleField('제목', ['meeting','worship','sermonTitle'], m.worship.sermonTitle);
+  html += roleField('축도', ['meeting','worship','benediction'], m.worship.benediction);
+  html += '</div></div>';
+
+  html += '<div class="roman-block"><h4>II. 노회 임원 이·취임식</h4><div class="role-grid">';
+  html += roleField('사회', ['meeting','installation','emcee'], m.installation.emcee);
+  html += roleField('순서', ['meeting','installation','note'], m.installation.note);
+  html += '</div></div>';
+
+  html += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
+  html += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
+  html += '</div></div>';
+
+  html += renderSection('s1');
+  html += renderSection('s2');
+  html += renderSection('s3');
+  html += renderSection('s4');
+  html += '</div>';
+  return html;
+}
+
+function render(){
+  var m = state.meeting;
+  updateBrand();
+  var html = renderCover() + renderPage2Header();
+  html += '<div class="page">';
+  ['s5','s6','s7','s8'].forEach(function(k){ html += renderSection(k); });
+  html += '</div>';
+  html += '<div class="page">';
+  ['s9','s10','s11','s12'].forEach(function(k){ html += renderSection(k); });
+  html += '<div class="footer-note">중서부 한미노회 · Midwest Korean American Presbytery</div>';
+  html += '</div>';
+
+  document.getElementById('docPanel').innerHTML = html;
+  document.getElementById('tocList').innerHTML = tocRows();
+  document.querySelectorAll('.line-text[data-autogrow]').forEach(autoGrow);
+  setupObserver();
+  updateModeUI();
+}
+
+function autoGrow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
+
+function updateBrand(){
+  document.getElementById('brandSub').textContent = '제 '+(state.meeting.ordinal||'—')+' 차 정기노회';
+}
+
+/* ============================= 네비게이션 (회순 이동 + 뒤로가기) ============================= */
+function scrollToAnchor(anchor){
+  var el;
+  if(anchor==='cover') el=document.getElementById('page-cover');
+  else if(anchor==='header') el=document.getElementById('page-header');
+  else if(anchor.indexOf('-sub-')>-1) el=document.getElementById('sec-'+anchor);
+  else el=document.getElementById('sec-'+anchor);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function gotoSection(k, subIdx){
+  var target = subIdx!==undefined ? (k+'-sub-'+subIdx) : k;
+  if(currentAnchor && currentAnchor!==target){ navStack.push(currentAnchor); }
+  document.getElementById('backBtn').disabled = navStack.length===0;
+  scrollToAnchor(target);
+  setActiveToc(target);
+  closeTocPanelMobile();
+}
+function goBack(){
+  if(!navStack.length) return;
+  var prev = navStack.pop();
+  document.getElementById('backBtn').disabled = navStack.length===0;
+  scrollToAnchor(prev);
+  setActiveToc(prev);
+}
+function setActiveToc(anchor){ currentAnchor = anchor; }
+
+function setupObserver(){
+  if(io) io.disconnect();
+  var blocks = document.querySelectorAll('[data-anchor]');
+  io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ currentAnchor = e.target.getAttribute('data-anchor'); }
+    });
+  }, {root:document.getElementById('docPanel'), threshold:0.2, rootMargin:'-40% 0px -50% 0px'});
+  blocks.forEach(function(b){ io.observe(b); });
+}
+
+/* ============================= 첨부서류 팝업 ============================= */
+function openAttachment(pathArr, idx){
+  var arr = getPath(state, pathArr);
+  var line = arr[idx];
+  document.getElementById('modalTitle').textContent = '📎 첨부서류 — ' + (line.text||'').slice(0,40);
+  document.getElementById('modalBody').textContent = line.attachmentContent || '(첨부 내용이 아직 입력되지 않았습니다. 편집모드에서 추가해 주세요.)';
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
+document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeModal(); closeArchive(); } });
+
+/* ============================= 편집모드 토글 ============================= */
+function toggleEditMode(){ editMode=!editMode; render(); }
+function updateModeUI(){
+  var b=document.getElementById('modeBtn');
+  b.textContent = editMode ? '✏️ 편집모드 켜짐' : '🔒 보기모드';
+  b.className = 'tbtn ' + (editMode?'mode-edit':'mode-locked');
+}
+
+function toggleTocPanel(){ document.getElementById('tocPanel').classList.toggle('open'); }
+function closeTocPanelMobile(){ if(window.innerWidth<=860){ document.getElementById('tocPanel').classList.remove('open'); } }
+
+/* ============================= 저장 / 보관함 (Google Apps Script 백엔드) ============================= */
+function isConfigured(){
+  if(APPS_SCRIPT_URL.indexOf('https://script.google.com/macros/s/AKfycbwSC09xHX_xnYMxstx10S_SvFwUP7Z1PXMVQ-vkLRxtIvqYZny67oafdzdOLc8B6RGy/exec')>-1){
+    alert('먼저 코드 상단의 APPS_SCRIPT_URL 값을 배포한 Apps Script 웹앱 주소로 바꿔주세요.\n(전달된 배포 안내를 참고하세요)');
+    return false;
+  }
+  return true;
+}
+
+/* GET 요청: Apps Script 응답을 <script> 태그로 불러오는 JSONP 방식 (CORS 우회) */
+function jsonp(params){
+  return new Promise(function(resolve, reject){
+    var cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*100000);
+    var script = document.createElement('script');
+    var timer = setTimeout(function(){
+      cleanup(); reject(new Error('요청 시간 초과'));
+    }, 15000);
+    function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = function(data){ cleanup(); resolve(data); };
+    var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    script.src = APPS_SCRIPT_URL + '?' + qs + '&callback=' + cbName;
+    script.onerror = function(){ cleanup(); reject(new Error('네트워크 오류')); };
+    document.body.appendChild(script);
+  });
+}
+
+/* POST 요청(저장/삭제): Apps Script는 CORS 프리플라이트를 허용하지 않으므로
+   no-cors + text/plain으로 전송합니다. 응답 본문은 읽을 수 없어(불투명 응답) 성공 여부를
+   별도로 확인하지 않고, 곧바로 목록을 새로고침해 반영 여부를 눈으로 확인합니다. */
+async function postToScript(body){
+  await fetch(APPS_SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(body)
+  });
+}
+
+async function saveMeeting(){
+  var m = state.meeting;
+  if(!m.ordinal){ alert('회차(제 몇 차)를 먼저 입력해주세요.'); return; }
+  if(!isConfigured()) return;
+  m.id = String(m.ordinal);
+  var badge = document.getElementById('saveBadge');
+  badge.textContent='저장 중…'; badge.style.color='#B9C2D6';
+  try{
+    await postToScript({action:'save', meeting:m});
+    markClean();
+  }catch(err){
+    console.error(err);
+    alert('저장 중 오류가 발생했습니다. 네트워크 설정에서 script.google.com 접속이 허용되어 있는지 확인해주세요.');
+  }
+}
+
+function newMeeting(){
+  if(dirty && !confirm('저장하지 않은 변경사항이 있습니다. 새 회의를 시작할까요?')) return;
+  var prevChair = state.meeting.meetingChair;
+  var m = blankMeeting();
+  // 다음 회차 번호 자동 추정 + 직전 담당자는 비워두고 시작 (담당자는 매번 바뀌므로)
+  var n = parseFloat(state.meeting.ordinal);
+  if(!isNaN(n)) m.ordinal = String(n+1);
+  state.meeting = m;
+  navStack=[]; currentAnchor='cover';
+  editMode = true;
+  markDirty();
+  render();
+  closeArchive();
+}
+
+/* ---------- 보관함 패널 ---------- */
+var archiveIndexCache = [];
+async function openArchive(){
+  document.getElementById('archiveOverlay').classList.remove('hidden');
+  await refreshArchiveIndex();
+}
+function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
+document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
+
+async function refreshArchiveIndex(){
+  var list = document.getElementById('archiveList');
+  list.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
+  if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
+  try{
+    var res = await jsonp({action:'list'});
+    archiveIndexCache = (res && res.ok) ? res.items : [];
+  }catch(e){
+    archiveIndexCache = [];
+    list.innerHTML = '<div class="archive-empty">불러오기 실패.<br>네트워크 또는 배포 URL을 확인해주세요.</div>';
+    return;
+  }
+  renderArchiveList();
+}
+
+/* 날짜/회차/장소는 목록에서 바로 빠르게 필터링(서버 왕복 없이) */
+function renderArchiveList(){
+  var q = (document.getElementById('archiveSearch').value||'').trim().toLowerCase();
+  var list = document.getElementById('archiveList');
+  var items = archiveIndexCache.filter(function(x){
+    if(!q) return true;
+    var hay = [x.id,x.ordinal,x.dateDisplay,x.dateISO,x.hostChurchKo].join(' ').toLowerCase();
+    return hay.indexOf(q)>-1;
+  });
+  if(items.length===0){ list.innerHTML='<div class="archive-empty">저장된 회의안이 없습니다.<br>먼저 "저장"을 눌러 보관해보세요.</div>'; return; }
+  list.innerHTML = items.map(function(x){
+    return '<div class="archive-item" onclick="loadMeeting(\\''+x.id+'\\')"><div class="t">제 '+esc(x.ordinal)+' 차 정기노회</div><div class="d">'+esc(x.dateDisplay||'')+' · '+esc(x.hostChurchKo||'')+'</div></div>';
+  }).join('');
+}
+
+/* 회의 본문 내용(보고/동의안 텍스트)까지 서버에서 검색 */
+async function doContentSearch(){
+  var q = (document.getElementById('archiveSearch').value||'').trim();
+  if(!q){ refreshArchiveIndex(); return; }
+  if(!isConfigured()) return;
+  document.getElementById('archiveList').innerHTML = '<div class="archive-empty">내용 검색 중…</div>';
+  try{
+    var res = await jsonp({action:'search', q:q});
+    archiveIndexCache = (res && res.ok) ? res.items : [];
+    renderArchiveList();
+  }catch(e){
+    document.getElementById('archiveList').innerHTML = '<div class="archive-empty">검색 실패</div>';
+  }
+}
+
+async function loadMeeting(id){
+  if(!isConfigured()) return;
+  try{
+    var res = await jsonp({action:'get', id:id});
+    if(!res || !res.ok || !res.meeting){ alert('불러오기에 실패했습니다.'); return; }
+    state.meeting = res.meeting;
+    navStack=[]; currentAnchor='cover';
+    markClean();
+    render();
+    closeArchive();
+    window.scrollTo(0,0);
+  }catch(e){ alert('불러오기 중 오류가 발생했습니다.'); }
+}
+
+/* ============================= 초기화 ============================= */
+render();
+markDirty(); // 처음엔 아직 보관함에 저장되지 않은 예시 데이터 상태
+</script>
+</body>
+</html>
