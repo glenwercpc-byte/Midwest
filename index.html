@@ -331,6 +331,7 @@ body{
   .page{padding:30px 20px;}
   .toolbar .brand small{display:none;}
 }
+.page-num{display:none;}
 @media print{
   .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,.line-del,.addline-btn,.addsub-btn,.subdel{display:none!important;}
   #docPanel{padding:0;}
@@ -342,6 +343,13 @@ body{
   .tag-pill{border:1px solid var(--edge)!important;}
   #page-cover{min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding-top:70px;padding-bottom:70px;}
   #page-cover .venue-card{margin-top:0;}
+  .section-block .sec-title{border-bottom:none!important;padding-bottom:0!important;}
+  .toc-render{border:none!important;}
+  .toc-render .toc-row,.toc-render .toc-subrow,.toc-render .toc-row-edit,.toc-render .toc-subrow-edit{border-bottom:none!important;}
+  .page-num{
+    display:block;text-align:center;font-size:10.5px;color:var(--sub);
+    font-family:'Noto Sans KR',sans-serif;margin-top:28px;
+  }
 }
 
 .attach-on{background:var(--gold-soft)!important;color:#4a3a05!important;border:1px solid var(--gold)!important;}
@@ -812,7 +820,9 @@ function renderCover(){
   out += '<div class="host">'+(editMode ? '<input class="cover-host-input js-field"'+fieldAttr(['meeting','hostChurchKo'])+' value="'+esc(m.hostChurchKo)+'">' : esc(m.hostChurchKo||'—'))+'</div>';
   out += '<div class="pastor">'+(editMode ? '<input class="cover-sub-input js-field"'+fieldAttr(['meeting','hostPastorLine'])+' value="'+esc(m.hostPastorLine)+'">' : esc(m.hostPastorLine||'—'))+'</div>';
   out += '<div class="addr">'+(editMode ? '<input class="cover-addr-input js-field"'+fieldAttr(['meeting','hostAddress'])+' value="'+esc(m.hostAddress)+'">' : esc(m.hostAddress||'—'))+'</div>';
-  out += '</div></div>';
+  out += '</div>';
+  out += '<div class="page-num">1 / 4</div>';
+  out += '</div>';
   return out;
 }
 
@@ -849,6 +859,7 @@ function renderPage2Header(){
   out += renderSection('s2');
   out += renderSection('s3');
   out += renderSection('s4');
+  out += '<div class="page-num">2 / 4</div>';
   out += '</div>';
   return out;
 }
@@ -858,10 +869,12 @@ function render(){
   var out = renderCover() + renderPage2Header();
   out += '<div class="page">';
   ['s5','s6','s7','s8'].forEach(function(k){ out += renderSection(k); });
+  out += '<div class="page-num">3 / 4</div>';
   out += '</div>';
   out += '<div class="page">';
   ['s9','s10','s11','s12'].forEach(function(k){ out += renderSection(k); });
   out += '<div class="footer-note">중서부 한미노회 · Midwest Korean American Presbytery</div>';
+  out += '<div class="page-num">4 / 4</div>';
   out += '</div>';
 
   document.getElementById('docPanel').innerHTML = out;
