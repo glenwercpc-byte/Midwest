@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+
 :root{
   --ink:#1E2A44;
   --ink-soft:#3B4A6B;
@@ -321,6 +322,21 @@ body{
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   body{background:#fff;}
 }
+
+.attach-on{background:var(--gold-soft)!important;color:#4a3a05!important;border:1px solid var(--gold)!important;}
+
+.serif-input{font-family:'Noto Serif KR',serif;background:transparent;border:none;border-bottom:1px dotted var(--edge);}
+.serif-input:focus{outline:none;border-bottom:1px solid var(--gold);}
+.cover-ordinal-input{width:60px;text-align:center;font-family:'Noto Serif KR',serif;font-weight:700;font-size:26px;color:var(--maroon);border:none;border-bottom:2px solid var(--gold);background:transparent;}
+.cover-dt-input{text-align:center;font-family:'Noto Serif KR',serif;font-size:17px;border:none;border-bottom:1px dotted var(--edge);background:transparent;}
+.cover-dt-input.narrow{width:160px;}
+.cover-dt-input.wide{width:220px;}
+.cover-host-input{text-align:center;font-family:'Noto Serif KR',serif;font-weight:600;font-size:17px;color:var(--maroon);border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;}
+.cover-sub-input{text-align:center;font-size:13.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;}
+.cover-addr-input{text-align:center;font-size:12.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;}
+.org-addr-input{border:none;background:transparent;font-size:11.5px;text-align:center;border-bottom:1px dotted var(--edge);width:280px;}
+.venue-note-input{border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13px;}
+.attach-note{width:100%;min-height:56px;border:1px solid var(--edge);border-radius:6px;padding:8px;font-size:12.5px;margin:0 0 10px 24px;display:block;}
 </style>
 </head>
 <body>
@@ -377,15 +393,25 @@ body{
 
 <script>
 /* ============================= 백엔드 설정 (Google Apps Script) =============================
-   아래 URL을 Apps Script 프로젝트를 웹앱으로 배포한 뒤 받는 주소로 바꿔주세요.
-   (배포 방법은 함께 전달된 안내를 참고하세요) */
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSC09xHX_xnYMxstx10S_SvFwUP7Z1PXMVQ-vkLRxtIvqYZny67oafdzdOLc8B6RGy/exec';
+   아래 URL을 Apps Script 프로젝트를 웹앱으로 배포한 뒤 받는 주소로 바꿔주세요. */
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSC09xHX_xnYMxstx10S_SvFwUP7Z1PXMVQ-vkLRxtIvqYZny67oafdzdOLc8B6RGy/exec";
 
 /* ============================= 데이터 모델 ============================= */
-function blankLines(arr){ return (arr||[]).map(t=> typeof t==='string' ? {text:t,tag:'',hasAttachment:false,attachmentContent:''} : t); }
+function blankLines(arr){
+  var out = [];
+  (arr||[]).forEach(function(t){
+    if(typeof t === 'string'){ out.push({text:t, tag:'', hasAttachment:false, attachmentContent:''}); }
+    else { out.push(t); }
+  });
+  return out;
+}
 
-function makeSection(num,title,kind,extra){
-  return Object.assign({num,title,kind, lines: kind==='lines'?[]:undefined, subs: kind==='sub'?[]:undefined}, extra||{});
+function makeSection(num, title, kind, extra){
+  var sec = {num:num, title:title, kind:kind};
+  if(kind==='lines') sec.lines = [];
+  if(kind==='sub') sec.subs = [];
+  if(extra){ for(var k in extra){ sec[k] = extra[k]; } }
+  return sec;
 }
 
 function defaultSkeleton(){
@@ -424,23 +450,22 @@ function defaultSkeleton(){
 function blankMeeting(){
   return {
     id: '',
-    ordinal:'',
-    dateDisplay:'',
-    timeDisplay:'오후 7 시',
-    dateISO:'',
-    hostChurchKo:'',
-    venueNote:'',
-    hostPastorLine:'',
-    hostAddress:'',
-    orgAddress:'8257 Harrison Street, Niles, IL 60714',
-    worship:{songLeader:'',emcee:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
-    installation:{emcee:'',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'},
-    meetingChair:'',
+    ordinal: '',
+    dateDisplay: '',
+    timeDisplay: '오후 7 시',
+    dateISO: '',
+    hostChurchKo: '',
+    venueNote: '',
+    hostPastorLine: '',
+    hostAddress: '',
+    orgAddress: '8257 Harrison Street, Niles, IL 60714',
+    worship: {songLeader:'',emcee:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
+    installation: {emcee:'',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'},
+    meetingChair: '',
     sections: defaultSkeleton()
   };
 }
 
-// 105차 회의록 내용을 기본 예시로 채워둡니다 (편집/삭제 가능)
 function seedMeeting105(){
   var m = blankMeeting();
   m.id='105'; m.ordinal='105';
@@ -496,8 +521,10 @@ function seedMeeting105(){
   s.s7.lines = [{text:'공천위원 추천: 박규완 목사(2026년조), 류한국 목사(2028년조), 문진규 장로(2028년조)',tag:'motion',hasAttachment:false,attachmentContent:''}];
   var c8 = s.s8.subs;
   c8[0].lines = blankLines(['2026년 위원회 조직개정안 참고']);
-  c8[1].lines = [{text:'정유경 전도사(시카고연합장로교회 찬양사역자) 목사 지망생 지원 서류·영상 면담',tag:'report'},
-    {text:'장로(후보자)·집사를 위한 헌법 교육(미국장로교 운영지침) 실시 — 강사: 최병훈 목사, 연 상·하반기 각 2회, 수강료 1인 20불 / 교회 최대 100불',tag:'motion'}].map(o=>Object.assign({hasAttachment:false,attachmentContent:''},o));
+  c8[1].lines = [
+    {text:'정유경 전도사(시카고연합장로교회 찬양사역자) 목사 지망생 지원 서류·영상 면담',tag:'report',hasAttachment:false,attachmentContent:''},
+    {text:'장로(후보자)·집사를 위한 헌법 교육(미국장로교 운영지침) 실시 — 강사: 최병훈 목사, 연 상·하반기 각 2회, 수강료 1인 20불 / 교회 최대 100불',tag:'motion',hasAttachment:false,attachmentContent:''}
+  ];
   c8[2].lines = [
     {text:'천서희 목사, 산호세임마누엘 장로교회 부목사 사역 시작 (2025년 12월)',tag:'report',hasAttachment:false,attachmentContent:''},
     {text:'한사랑복음장로교회 임시당회장으로 이만석 목사 파송(2월부터)',tag:'report',hasAttachment:false,attachmentContent:''},
@@ -516,7 +543,8 @@ function seedMeeting105(){
     {text:'각 교회 당회서기는 당회록·정관·내규 점검 후 노회 전 5시부터 검토 제출',tag:'report',hasAttachment:false,attachmentContent:''},
     {text:'적법한 당회록 기록을 위한 장로 교육 계획',tag:'report',hasAttachment:false,attachmentContent:''}
   ];
-  c8[5].lines = [{text:'2025년 노회 재정 감사 안 — 총수입 $281,606.84 / 총지출 $260,454.02 / 잔고 $21,152.82, 은행잔고(12/31) $19,362.82, 상회비 완납 $89,229, PILP CD $80,000+이자(2/26/26 만기)',tag:'report',hasAttachment:true,attachmentContent:''},
+  c8[5].lines = [
+    {text:'2025년 노회 재정 감사 안 — 총수입 $281,606.84 / 총지출 $260,454.02 / 잔고 $21,152.82, 은행잔고(12/31) $19,362.82, 상회비 완납 $89,229, PILP CD $80,000+이자(2/26/26 만기)',tag:'report',hasAttachment:true,attachmentContent:''},
     {text:'한사랑복음장로교회 전 복음교회 부지·건물 매각 요청 — 다음 회기로 연기',tag:'report',hasAttachment:false,attachmentContent:''},
     {text:'법인이사회 행정수행지침서 "교회 합병절차 Policy" 의견 수렴',tag:'report',hasAttachment:true,attachmentContent:''},
     {text:'PILP CD(2/26/26 만기) 15개월 3.25%로 Renewal',tag:'motion',hasAttachment:false,attachmentContent:''}
@@ -532,27 +560,30 @@ function seedMeeting105(){
 var state = { meeting: seedMeeting105() };
 var editMode = false;
 var navStack = [];
-var currentAnchor = 's1';
+var currentAnchor = 'cover';
 var io = null;
 var dirty = false;
 
-/* ---------- 경로 유틸 ---------- */
-function getPath(obj, path){ return path.reduce((o,k)=> (o==null?o:o[k]), obj); }
-function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getPath(obj, path){
+  var o = obj;
+  for(var i=0;i<path.length;i++){ if(o==null) return o; o = o[path[i]]; }
+  return o;
+}
+function esc(s){
+  return (s==null?'':String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-function markDirty(){ dirty=true; document.getElementById('saveBadge').textContent='저장 안 된 변경사항 있음'; document.getElementById('saveBadge').style.color='#e2b04a'; }
-function markClean(){ dirty=false; document.getElementById('saveBadge').textContent='저장됨'; document.getElementById('saveBadge').style.color='#B9C2D6'; }
+function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#e2b04a'; }
+function markClean(){ dirty=false; var b=document.getElementById('saveBadge'); b.textContent='저장됨'; b.style.color='#B9C2D6'; }
 
-/* 텍스트 입력: 구조를 바꾸지 않으므로 다시 그리지 않음(커서 유지) */
 function setField(path, value){
   var parent = getPath(state, path.slice(0,-1));
+  if(parent==null) return;
   parent[path[path.length-1]] = value;
   markDirty();
   updateBrand();
 }
-/* 구조가 바뀌는 변경: 다시 그림 */
-function setFieldRerender(path, value){ setField(path, value); render(); }
-
 function addLine(path){
   var arr = getPath(state, path);
   arr.push({text:'',tag:'',hasAttachment:false,attachmentContent:''});
@@ -585,242 +616,241 @@ function removeSub(sKey, idx){
   state.meeting.sections[sKey].subs.splice(idx,1);
   markDirty(); render();
 }
+function onSubLabelInput(el, k, i){
+  var v = el.value;
+  var dotIdx = v.indexOf('.');
+  var sub = state.meeting.sections[k].subs[i];
+  if(dotIdx>0){ sub.key = v.slice(0,dotIdx).trim(); sub.label = v.slice(dotIdx+1).trim(); }
+  else { sub.label = v; }
+  markDirty();
+}
 
 /* ============================= 렌더링 ============================= */
 function tagLabel(tag){ return tag==='report' ? '보고' : tag==='motion' ? '동의안' : '구분'; }
 function tagClass(tag){ return tag==='report' ? 'tag-report' : tag==='motion' ? 'tag-motion' : 'tag-none'; }
 
+function fieldAttr(path){ return ' data-path="'+esc(JSON.stringify(path))+'"'; }
+
 function renderLineRow(pathArr, line, idx){
-  var pathAttr = JSON.stringify(pathArr);
-  var lockedAttr = editMode ? '' : 'disabled';
-  var html = '<div class="line">';
-  html += '<span class="line-num">'+(idx+1)+'.</span>';
-  html += '<textarea class="line-text" '+lockedAttr+' rows="1" data-autogrow="1" oninput="setField('+esc(pathAttr).replace(/"/g,'&quot;')+'.concat(['+idx+',\\'text\\']), this.value); autoGrow(this);" placeholder="내용을 입력하세요">'+esc(line.text)+'</textarea>';
+  var pathA = fieldAttr(pathArr);
+  var disabledAttr = editMode ? '' : ' disabled';
+  var out = '';
+  out += '<div class="line">';
+  out += '<span class="line-num">'+(idx+1)+'.</span>';
+  out += '<textarea class="line-text js-line-text"'+pathA+' data-idx="'+idx+'" rows="1"'+disabledAttr+' placeholder="내용을 입력하세요">'+esc(line.text)+'</textarea>';
   if(editMode){
-    html += '<button class="tag-pill '+tagClass(line.tag)+'" onclick=\'cycleTag('+pathAttr+','+idx+')\'>'+tagLabel(line.tag)+'</button>';
+    out += '<button type="button" class="tag-pill '+tagClass(line.tag)+' js-cycle-tag"'+pathA+' data-idx="'+idx+'">'+tagLabel(line.tag)+'</button>';
   } else if(line.tag){
-    html += '<span class="tag-pill '+tagClass(line.tag)+'">'+tagLabel(line.tag)+'</span>';
+    out += '<span class="tag-pill '+tagClass(line.tag)+'">'+tagLabel(line.tag)+'</span>';
   }
   if(editMode){
-    html += '<button class="tag-pill" style="background:'+(line.hasAttachment?'var(--gold-soft)':'transparent')+';border:1px dashed var(--edge);color:'+(line.hasAttachment?'#4a3a05':'var(--sub)')+'" onclick=\'toggleAttach('+pathAttr+','+idx+')\'>📎 첨부</button>';
+    var attachCls = line.hasAttachment ? 'tag-pill js-toggle-attach attach-on' : 'tag-pill js-toggle-attach';
+    out += '<button type="button" class="'+attachCls+'"'+pathA+' data-idx="'+idx+'">📎 첨부</button>';
   } else if(line.hasAttachment){
-    html += '<button class="attach-chip" onclick=\'openAttachment('+pathAttr+','+idx+')\'>📎 첨부서류 참고</button>';
+    out += '<button type="button" class="attach-chip js-open-attachment"'+pathA+' data-idx="'+idx+'">📎 첨부서류 참고</button>';
   }
   if(editMode){
-    html += '<button class="line-del" onclick=\'removeLine('+pathAttr+','+idx+')\' title="삭제">✕</button>';
+    out += '<button type="button" class="line-del js-remove-line"'+pathA+' data-idx="'+idx+'" title="삭제">✕</button>';
   }
-  html += '</div>';
+  out += '</div>';
   if(editMode && line.hasAttachment){
-    html += '<div style="margin:0 0 10px 24px;"><textarea placeholder="첨부 내용 메모 (예: 파일명, 요약, 링크)" style="width:100%;min-height:56px;border:1px solid var(--edge);border-radius:6px;padding:8px;font-family:\\'Noto Sans KR\\',sans-serif;font-size:12.5px;" oninput="setField('+esc(pathAttr).replace(/"/g,'&quot;')+'.concat(['+idx+',\\'attachmentContent\\']), this.value)">'+esc(line.attachmentContent)+'</textarea></div>';
+    out += '<textarea class="attach-note js-attach-content"'+pathA+' data-idx="'+idx+'" placeholder="첨부 내용 메모 (예: 파일명, 요약, 링크)">'+esc(line.attachmentContent)+'</textarea>';
   }
-  return html;
+  return out;
 }
 
 function renderLinesBlock(pathArr, lines){
-  var html='';
-  lines.forEach(function(line,idx){ html += renderLineRow(pathArr, line, idx); });
+  var out = '';
+  lines.forEach(function(line, idx){ out += renderLineRow(pathArr, line, idx); });
   if(editMode){
-    html += '<button class="addline-btn" onclick=\'addLine('+JSON.stringify(pathArr)+')\'>+ 항목 추가</button>';
+    out += '<button type="button" class="addline-btn js-add-line"'+fieldAttr(pathArr)+'>+ 항목 추가</button>';
   }
   if(!editMode && lines.length===0){
-    html += '<div style="color:var(--sub);font-size:13px;">— 내용 없음 —</div>';
+    out += '<div style="color:var(--sub);font-size:13px;">— 내용 없음 —</div>';
   }
-  return html;
+  return out;
 }
 
 function tocRows(){
   var s = state.meeting.sections;
-  var order=['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
-  var html='';
+  var order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+  var out = '';
   order.forEach(function(k){
-    var sec=s[k];
-    html += '<div class="toc-row" onclick="gotoSection(\\''+k+'\\')"><span class="n">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
+    var sec = s[k];
+    out += '<div class="toc-row js-goto" data-skey="'+k+'"><span class="n">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
     if(sec.kind==='sub'){
-      sec.subs.forEach(function(sub,i){
-        html += '<div class="toc-subrow" onclick="event.stopPropagation();gotoSection(\\''+k+'\\',\\''+i+'\\')">'+esc(sub.key)+'. '+esc(sub.label)+'</div>';
+      sec.subs.forEach(function(sub, i){
+        out += '<div class="toc-subrow js-goto" data-skey="'+k+'" data-subidx="'+i+'">'+esc(sub.key)+'. '+esc(sub.label)+'</div>';
       });
     }
   });
-  return html;
+  return out;
 }
 
 function renderSectionTitle(k, sec){
-  var lockedAttr = editMode?'':'disabled';
+  var disabledAttr = editMode ? '' : ' disabled';
   if(editMode){
-    return '<div class="sec-title"><span class="num">'+sec.num+'</span><input class="title-edit" '+lockedAttr+' value="'+esc(sec.title)+'" oninput="setField([\\'meeting\\',\\'sections\\',\\''+k+'\\',\\'title\\'], this.value)"></div>';
+    return '<div class="sec-title"><span class="num">'+sec.num+'</span><input class="title-edit js-field"'+fieldAttr(['meeting','sections',k,'title'])+disabledAttr+' value="'+esc(sec.title)+'"></div>';
   }
   return '<div class="sec-title"><span class="num">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
 }
 
 function renderSection(k){
   var sec = state.meeting.sections[k];
-  var html = '<div class="section-block" id="sec-'+k+'" data-anchor="'+k+'">';
-  html += renderSectionTitle(k, sec);
+  var out = '<div class="section-block" id="sec-'+k+'" data-anchor="'+k+'">';
+  out += renderSectionTitle(k, sec);
 
   if(sec.kind==='static'){
     if(k==='s1'){
-      html += '<div style="font-size:13px;color:var(--sub);">사회: '+esc(state.meeting.meetingChair||'—')+'</div>';
+      out += '<div style="font-size:13px;color:var(--sub);">사회: '+esc(state.meeting.meetingChair||'—')+'</div>';
     } else if(k==='s12'){
-      html += '<div style="font-size:13px;color:var(--sub);">제 '+esc(state.meeting.ordinal||'—')+'차 정기노회를 폐회합니다.</div>';
+      out += '<div style="font-size:13px;color:var(--sub);">제 '+esc(state.meeting.ordinal||'—')+'차 정기노회를 폐회합니다.</div>';
     }
   } else if(sec.kind==='lines'){
-    html += renderLinesBlock(['meeting','sections',k,'lines'], sec.lines);
+    out += renderLinesBlock(['meeting','sections',k,'lines'], sec.lines);
   } else if(sec.kind==='sub'){
     sec.subs.forEach(function(sub, i){
-      var lockedAttr = editMode?'':'disabled';
-      html += '<div class="sub-block" id="sec-'+k+'-sub-'+i+'" data-anchor="'+k+'-sub-'+i+'">';
-      html += '<div class="sub-label">';
+      var disabledAttr = editMode ? '' : ' disabled';
+      out += '<div class="sub-block" id="sec-'+k+'-sub-'+i+'" data-anchor="'+k+'-sub-'+i+'">';
+      out += '<div class="sub-label">';
       if(editMode){
-        html += '<input value="'+esc(sub.key+'. '+sub.label)+'" oninput="onSubLabelInput(this,\\''+k+'\\','+i+')">';
-        html += '<button class="subdel" onclick="removeSub(\\''+k+'\\','+i+')">삭제</button>';
+        out += '<input class="js-sub-label" data-skey="'+k+'" data-subidx="'+i+'" value="'+esc(sub.key+'. '+sub.label)+'">';
+        out += '<button type="button" class="subdel js-remove-sub" data-skey="'+k+'" data-subidx="'+i+'">삭제</button>';
       } else {
-        html += '<span>'+esc(sub.key)+'. '+esc(sub.label)+'</span>';
+        out += '<span>'+esc(sub.key)+'. '+esc(sub.label)+'</span>';
       }
-      html += '</div>';
-      html += renderLinesBlock(['meeting','sections',k,'subs',i,'lines'], sub.lines);
-      html += '</div>';
+      out += '</div>';
+      out += renderLinesBlock(['meeting','sections',k,'subs',i,'lines'], sub.lines);
+      out += '</div>';
     });
     if(editMode){
-      html += '<button class="addsub-btn" onclick="addSub(\\''+k+'\\')">+ 위원회 / 보고 항목 추가</button>';
+      out += '<button type="button" class="addsub-btn js-add-sub" data-skey="'+k+'">+ 위원회 / 보고 항목 추가</button>';
     }
   } else if(sec.kind==='toc'){
-    html += '<div class="toc-render">'+tocRows()+'</div>';
+    out += '<div class="toc-render">'+tocRows()+'</div>';
   } else if(sec.kind==='next'){
-    var d = sec.data; var lockedAttr = editMode?'':'disabled';
-    html += '<div class="next-grid">';
-    html += '<div class="k">다음 회차</div><div>'+inputOrText(['meeting','sections','s9','data','ordinal'], d.ordinal, '제 ')+'</div>';
-    html += '<div class="k">일시</div><div>'+inputOrText(['meeting','sections','s9','data','dateDisplay'], d.dateDisplay)+'</div>';
-    html += '<div class="k">장소</div><div>'+inputOrText(['meeting','sections','s9','data','venue'], d.venue)+'</div>';
-    html += '<div class="k">주소</div><div>'+inputOrText(['meeting','sections','s9','data','address'], d.address)+'</div>';
-    html += '</div>';
+    var d = sec.data;
+    out += '<div class="next-grid">';
+    out += '<div class="k">다음 회차</div><div>제 '+inputSpan(['meeting','sections','s9','data','ordinal'], d.ordinal)+'</div>';
+    out += '<div class="k">일시</div><div>'+inputSpan(['meeting','sections','s9','data','dateDisplay'], d.dateDisplay)+'</div>';
+    out += '<div class="k">장소</div><div>'+inputSpan(['meeting','sections','s9','data','venue'], d.venue)+'</div>';
+    out += '<div class="k">주소</div><div>'+inputSpan(['meeting','sections','s9','data','address'], d.address)+'</div>';
+    out += '</div>';
   }
-  html += '</div>';
-  return html;
+  out += '</div>';
+  return out;
 }
 
-function inputOrText(pathArr, val, prefix){
-  var lockedAttr = editMode?'':'disabled';
-  var jsPath = JSON.stringify(pathArr);
+function inputSpan(pathArr, val){
+  var disabledAttr = editMode ? '' : ' disabled';
   if(editMode){
-    return (prefix||'')+'<input '+lockedAttr+' value="'+esc(val)+'" oninput="setField('+jsPath.replace(/"/g,'&quot;')+', this.value)" style="border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13.5px;padding:3px 2px;font-family:\\'Noto Sans KR\\',sans-serif;width:70%;">';
+    return '<input class="js-field"'+fieldAttr(pathArr)+disabledAttr+' value="'+esc(val)+'">';
   }
-  return (prefix||'')+esc(val||'—');
-}
-
-function onSubLabelInput(el, k, i){
-  var v = el.value;
-  var dotIdx = v.indexOf('.');
-  var key = dotIdx>0? v.slice(0,dotIdx).trim() : state.meeting.sections[k].subs[i].key;
-  var label = dotIdx>0? v.slice(dotIdx+1).trim() : v;
-  state.meeting.sections[k].subs[i].key = key;
-  state.meeting.sections[k].subs[i].label = label;
-  markDirty();
+  return esc(val||'—');
 }
 
 function roleField(labelKo, pathArr, val){
-  var lockedAttr = editMode?'':'disabled';
-  var jsPath = JSON.stringify(pathArr);
-  return '<div class="k">'+labelKo+'</div><div><input '+lockedAttr+' value="'+esc(val)+'" oninput="setField('+jsPath.replace(/"/g,'&quot;')+', this.value)"></div>';
+  var disabledAttr = editMode ? '' : ' disabled';
+  return '<div class="k">'+labelKo+'</div><div><input class="js-field"'+fieldAttr(pathArr)+disabledAttr+' value="'+esc(val)+'"></div>';
 }
 
 function renderCover(){
   var m = state.meeting;
-  var lockedAttr = editMode?'':'disabled';
-  var html = '<div class="page cover" id="page-cover" data-anchor="cover">';
-  html += '<svg class="emblem" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="#A9822C" stroke-width="2"/><path d="M50 20 L50 58 M36 34 L64 34" stroke="#1E2A44" stroke-width="6" stroke-linecap="round"/><path d="M50 58 C42 64,40 74,50 82 C60 74,58 64,50 58 Z" fill="#7A2E2E"/></svg>';
-  html += '<h1>중서부 한미노회</h1>';
-  html += '<h1>제 ';
-  html += editMode ? '<input style="width:60px;text-align:center;font-family:\\'Noto Serif KR\\',serif;font-weight:700;font-size:26px;color:var(--maroon);border:none;border-bottom:2px solid var(--gold);background:transparent;" value="'+esc(m.ordinal)+'" oninput="setField([\\'meeting\\',\\'ordinal\\'], this.value)">' : '<span class="ordinal-field">'+esc(m.ordinal||'—')+'</span>';
-  html += ' 차 정기 노회</h1>';
-  html += '<div class="en-title">The '+esc(m.ordinal||'—')+'<sup>th</sup> Stated Meeting of<br>Midwest Korean American Presbytery</div>';
-  html += '<div class="rule"></div>';
-  html += '<div class="dt">일시: '+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-size:17px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:220px;" value="'+esc(m.dateDisplay)+'" oninput="setField([\\'meeting\\',\\'dateDisplay\\'], this.value)">' : esc(m.dateDisplay||'—')) + '</div>';
-  html += '<div class="dt">'+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-size:17px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:160px;" value="'+esc(m.timeDisplay)+'" oninput="setField([\\'meeting\\',\\'timeDisplay\\'], this.value)">' : esc(m.timeDisplay||'—')) + '</div>';
-  html += '<div class="venue-card">';
-  html += '<div class="host">'+ (editMode? '<input style="text-align:center;font-family:\\'Noto Serif KR\\',serif;font-weight:600;font-size:17px;color:var(--maroon);border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostChurchKo)+'" oninput="setField([\\'meeting\\',\\'hostChurchKo\\'], this.value)">' : esc(m.hostChurchKo||'—')) + '</div>';
-  html += '<div class="pastor">'+ (editMode? '<input style="text-align:center;font-size:13.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostPastorLine)+'" oninput="setField([\\'meeting\\',\\'hostPastorLine\\'], this.value)">' : esc(m.hostPastorLine||'—')) + '</div>';
-  html += '<div class="addr">'+ (editMode? '<input style="text-align:center;font-size:12.5px;border:none;border-bottom:1px dotted var(--edge);background:transparent;width:100%;" value="'+esc(m.hostAddress)+'" oninput="setField([\\'meeting\\',\\'hostAddress\\'], this.value)">' : esc(m.hostAddress||'—')) + '</div>';
-  html += '</div>';
-  html += '</div>';
-  return html;
+  var out = '<div class="page cover" id="page-cover" data-anchor="cover">';
+  out += '<svg class="emblem" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="#A9822C" stroke-width="2"></circle><path d="M50 20 L50 58 M36 34 L64 34" stroke="#1E2A44" stroke-width="6" stroke-linecap="round"></path><path d="M50 58 C42 64,40 74,50 82 C60 74,58 64,50 58 Z" fill="#7A2E2E"></path></svg>';
+  out += '<h1>중서부 한미노회</h1>';
+  out += '<h1>제 ';
+  if(editMode){
+    out += '<input class="cover-ordinal-input js-field"'+fieldAttr(['meeting','ordinal'])+' value="'+esc(m.ordinal)+'">';
+  } else {
+    out += '<span class="ordinal-field">'+esc(m.ordinal||'—')+'</span>';
+  }
+  out += ' 차 정기 노회</h1>';
+  out += '<div class="en-title">The '+esc(m.ordinal||'—')+'<sup>th</sup> Stated Meeting of<br>Midwest Korean American Presbytery</div>';
+  out += '<div class="rule"></div>';
+  out += '<div class="dt">일시: ';
+  out += editMode ? '<input class="cover-dt-input wide js-field"'+fieldAttr(['meeting','dateDisplay'])+' value="'+esc(m.dateDisplay)+'">' : esc(m.dateDisplay||'—');
+  out += '</div>';
+  out += '<div class="dt">';
+  out += editMode ? '<input class="cover-dt-input narrow js-field"'+fieldAttr(['meeting','timeDisplay'])+' value="'+esc(m.timeDisplay)+'">' : esc(m.timeDisplay||'—');
+  out += '</div>';
+  out += '<div class="venue-card">';
+  out += '<div class="host">'+(editMode ? '<input class="cover-host-input js-field"'+fieldAttr(['meeting','hostChurchKo'])+' value="'+esc(m.hostChurchKo)+'">' : esc(m.hostChurchKo||'—'))+'</div>';
+  out += '<div class="pastor">'+(editMode ? '<input class="cover-sub-input js-field"'+fieldAttr(['meeting','hostPastorLine'])+' value="'+esc(m.hostPastorLine)+'">' : esc(m.hostPastorLine||'—'))+'</div>';
+  out += '<div class="addr">'+(editMode ? '<input class="cover-addr-input js-field"'+fieldAttr(['meeting','hostAddress'])+' value="'+esc(m.hostAddress)+'">' : esc(m.hostAddress||'—'))+'</div>';
+  out += '</div></div>';
+  return out;
 }
 
 function renderPage2Header(){
   var m = state.meeting;
-  var html = '<div class="page" id="page-header" data-anchor="header">';
-  html += '<div class="doc-header">';
-  html += '<div class="org">중서부 한미노회 · '+(editMode? '<input style="border:none;background:transparent;font-size:11.5px;text-align:center;border-bottom:1px dotted var(--edge);width:280px;" value="'+esc(m.orgAddress)+'" oninput="setField([\\'meeting\\',\\'orgAddress\\'], this.value)">':esc(m.orgAddress)) +'</div>';
-  html += '<h2>제 '+esc(m.ordinal||'—')+' 차 중서부 한미노회 정기노회 회의안 (Docket)</h2>';
-  html += '<div class="meta-row"><span><b>일시</b> : '+esc(m.dateDisplay||'—')+' '+esc(m.timeDisplay||'')+'</span><span><b>장소</b> : '+ (editMode? '<input style="border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:13px;" value="'+esc(m.venueNote)+'" oninput="setField([\\'meeting\\',\\'venueNote\\'], this.value)" placeholder="(예: 시카고노회 소속)">' : esc(m.hostChurchKo+' '+(m.venueNote||''))) +'</span></div>';
-  html += '</div>';
+  var out = '<div class="page" id="page-header" data-anchor="header">';
+  out += '<div class="doc-header">';
+  out += '<div class="org">중서부 한미노회 · '+(editMode ? '<input class="org-addr-input js-field"'+fieldAttr(['meeting','orgAddress'])+' value="'+esc(m.orgAddress)+'">' : esc(m.orgAddress))+'</div>';
+  out += '<h2>제 '+esc(m.ordinal||'—')+' 차 중서부 한미노회 정기노회 회의안 (Docket)</h2>';
+  out += '<div class="meta-row"><span><b>일시</b> : '+esc(m.dateDisplay||'—')+' '+esc(m.timeDisplay||'')+'</span><span><b>장소</b> : ';
+  out += editMode ? esc(m.hostChurchKo)+' <input class="venue-note-input js-field"'+fieldAttr(['meeting','venueNote'])+' value="'+esc(m.venueNote)+'" placeholder="(예: 시카고노회 소속)">' : esc(m.hostChurchKo+' '+(m.venueNote||''));
+  out += '</span></div></div>';
 
-  html += '<div class="roman-block"><h4>I. 개회예배</h4><div class="role-grid">';
-  html += roleField('찬양인도', ['meeting','worship','songLeader'], m.worship.songLeader);
-  html += roleField('사회', ['meeting','worship','emcee'], m.worship.emcee);
-  html += roleField('기도', ['meeting','worship','prayer'], m.worship.prayer);
-  html += roleField('설교', ['meeting','worship','preacher'], m.worship.preacher);
-  html += roleField('본문', ['meeting','worship','scripture'], m.worship.scripture);
-  html += roleField('제목', ['meeting','worship','sermonTitle'], m.worship.sermonTitle);
-  html += roleField('축도', ['meeting','worship','benediction'], m.worship.benediction);
-  html += '</div></div>';
+  out += '<div class="roman-block"><h4>I. 개회예배</h4><div class="role-grid">';
+  out += roleField('찬양인도', ['meeting','worship','songLeader'], m.worship.songLeader);
+  out += roleField('사회', ['meeting','worship','emcee'], m.worship.emcee);
+  out += roleField('기도', ['meeting','worship','prayer'], m.worship.prayer);
+  out += roleField('설교', ['meeting','worship','preacher'], m.worship.preacher);
+  out += roleField('본문', ['meeting','worship','scripture'], m.worship.scripture);
+  out += roleField('제목', ['meeting','worship','sermonTitle'], m.worship.sermonTitle);
+  out += roleField('축도', ['meeting','worship','benediction'], m.worship.benediction);
+  out += '</div></div>';
 
-  html += '<div class="roman-block"><h4>II. 노회 임원 이·취임식</h4><div class="role-grid">';
-  html += roleField('사회', ['meeting','installation','emcee'], m.installation.emcee);
-  html += roleField('순서', ['meeting','installation','note'], m.installation.note);
-  html += '</div></div>';
+  out += '<div class="roman-block"><h4>II. 노회 임원 이·취임식</h4><div class="role-grid">';
+  out += roleField('사회', ['meeting','installation','emcee'], m.installation.emcee);
+  out += roleField('순서', ['meeting','installation','note'], m.installation.note);
+  out += '</div></div>';
 
-  html += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
-  html += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
-  html += '</div></div>';
+  out += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
+  out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
+  out += '</div></div>';
 
-  html += renderSection('s1');
-  html += renderSection('s2');
-  html += renderSection('s3');
-  html += renderSection('s4');
-  html += '</div>';
-  return html;
+  out += renderSection('s1');
+  out += renderSection('s2');
+  out += renderSection('s3');
+  out += renderSection('s4');
+  out += '</div>';
+  return out;
 }
 
 function render(){
-  var m = state.meeting;
   updateBrand();
-  var html = renderCover() + renderPage2Header();
-  html += '<div class="page">';
-  ['s5','s6','s7','s8'].forEach(function(k){ html += renderSection(k); });
-  html += '</div>';
-  html += '<div class="page">';
-  ['s9','s10','s11','s12'].forEach(function(k){ html += renderSection(k); });
-  html += '<div class="footer-note">중서부 한미노회 · Midwest Korean American Presbytery</div>';
-  html += '</div>';
+  var out = renderCover() + renderPage2Header();
+  out += '<div class="page">';
+  ['s5','s6','s7','s8'].forEach(function(k){ out += renderSection(k); });
+  out += '</div>';
+  out += '<div class="page">';
+  ['s9','s10','s11','s12'].forEach(function(k){ out += renderSection(k); });
+  out += '<div class="footer-note">중서부 한미노회 · Midwest Korean American Presbytery</div>';
+  out += '</div>';
 
-  document.getElementById('docPanel').innerHTML = html;
+  document.getElementById('docPanel').innerHTML = out;
   document.getElementById('tocList').innerHTML = tocRows();
-  document.querySelectorAll('.line-text[data-autogrow]').forEach(autoGrow);
+  document.querySelectorAll('.line-text[data-idx]').forEach(autoGrow);
   setupObserver();
   updateModeUI();
 }
 
 function autoGrow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
-
-function updateBrand(){
-  document.getElementById('brandSub').textContent = '제 '+(state.meeting.ordinal||'—')+' 차 정기노회';
-}
+function updateBrand(){ document.getElementById('brandSub').textContent = '제 '+(state.meeting.ordinal||'—')+' 차 정기노회'; }
 
 /* ============================= 네비게이션 (회순 이동 + 뒤로가기) ============================= */
 function scrollToAnchor(anchor){
-  var el;
-  if(anchor==='cover') el=document.getElementById('page-cover');
-  else if(anchor==='header') el=document.getElementById('page-header');
-  else if(anchor.indexOf('-sub-')>-1) el=document.getElementById('sec-'+anchor);
-  else el=document.getElementById('sec-'+anchor);
+  var el = document.getElementById(anchor==='cover' ? 'page-cover' : anchor==='header' ? 'page-header' : 'sec-'+anchor);
   if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function gotoSection(k, subIdx){
-  var target = subIdx!==undefined ? (k+'-sub-'+subIdx) : k;
+  var target = (subIdx!==undefined && subIdx!==null && subIdx!=='') ? (k+'-sub-'+subIdx) : k;
   if(currentAnchor && currentAnchor!==target){ navStack.push(currentAnchor); }
   document.getElementById('backBtn').disabled = navStack.length===0;
   scrollToAnchor(target);
-  setActiveToc(target);
+  currentAnchor = target;
   closeTocPanelMobile();
 }
 function goBack(){
@@ -828,17 +858,13 @@ function goBack(){
   var prev = navStack.pop();
   document.getElementById('backBtn').disabled = navStack.length===0;
   scrollToAnchor(prev);
-  setActiveToc(prev);
+  currentAnchor = prev;
 }
-function setActiveToc(anchor){ currentAnchor = anchor; }
-
 function setupObserver(){
   if(io) io.disconnect();
   var blocks = document.querySelectorAll('[data-anchor]');
   io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){ currentAnchor = e.target.getAttribute('data-anchor'); }
-    });
+    entries.forEach(function(en){ if(en.isIntersecting){ currentAnchor = en.target.getAttribute('data-anchor'); } });
   }, {root:document.getElementById('docPanel'), threshold:0.2, rootMargin:'-40% 0px -50% 0px'});
   blocks.forEach(function(b){ io.observe(b); });
 }
@@ -852,37 +878,69 @@ function openAttachment(pathArr, idx){
   document.getElementById('modalOverlay').classList.remove('hidden');
 }
 function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
-document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
-document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeModal(); closeArchive(); } });
 
 /* ============================= 편집모드 토글 ============================= */
 function toggleEditMode(){ editMode=!editMode; render(); }
 function updateModeUI(){
-  var b=document.getElementById('modeBtn');
+  var b = document.getElementById('modeBtn');
   b.textContent = editMode ? '✏️ 편집모드 켜짐' : '🔒 보기모드';
-  b.className = 'tbtn ' + (editMode?'mode-edit':'mode-locked');
+  b.className = 'tbtn ' + (editMode ? 'mode-edit' : 'mode-locked');
 }
-
 function toggleTocPanel(){ document.getElementById('tocPanel').classList.toggle('open'); }
 function closeTocPanelMobile(){ if(window.innerWidth<=860){ document.getElementById('tocPanel').classList.remove('open'); } }
+
+/* ============================= 이벤트 위임 (클릭 / 입력) ============================= */
+function onWorkspaceClick(e){
+  var el = e.target.closest('.js-cycle-tag,.js-toggle-attach,.js-open-attachment,.js-remove-line,.js-add-line,.js-remove-sub,.js-add-sub,.js-goto,.js-load-meeting');
+  if(!el) return;
+  var path = el.dataset.path ? JSON.parse(el.dataset.path) : null;
+  var idx = el.dataset.idx!==undefined ? parseInt(el.dataset.idx,10) : undefined;
+  if(el.classList.contains('js-cycle-tag')) cycleTag(path, idx);
+  else if(el.classList.contains('js-toggle-attach')) toggleAttach(path, idx);
+  else if(el.classList.contains('js-open-attachment')) openAttachment(path, idx);
+  else if(el.classList.contains('js-remove-line')) removeLine(path, idx);
+  else if(el.classList.contains('js-add-line')) addLine(path);
+  else if(el.classList.contains('js-remove-sub')) removeSub(el.dataset.skey, parseInt(el.dataset.subidx,10));
+  else if(el.classList.contains('js-add-sub')) addSub(el.dataset.skey);
+  else if(el.classList.contains('js-goto')) gotoSection(el.dataset.skey, el.dataset.subidx);
+  else if(el.classList.contains('js-load-meeting')) loadMeeting(el.dataset.id);
+}
+function onWorkspaceInput(e){
+  var el = e.target;
+  if(el.classList.contains('js-line-text')){
+    var path = JSON.parse(el.dataset.path).concat([parseInt(el.dataset.idx,10),'text']);
+    setField(path, el.value); autoGrow(el);
+  } else if(el.classList.contains('js-attach-content')){
+    var path2 = JSON.parse(el.dataset.path).concat([parseInt(el.dataset.idx,10),'attachmentContent']);
+    setField(path2, el.value);
+  } else if(el.classList.contains('js-field')){
+    setField(JSON.parse(el.dataset.path), el.value);
+  } else if(el.classList.contains('js-sub-label')){
+    onSubLabelInput(el, el.dataset.skey, parseInt(el.dataset.subidx,10));
+  }
+}
+document.getElementById('docPanel').addEventListener('click', onWorkspaceClick);
+document.getElementById('docPanel').addEventListener('input', onWorkspaceInput);
+document.getElementById('tocList').addEventListener('click', onWorkspaceClick);
+document.getElementById('archiveList').addEventListener('click', onWorkspaceClick);
+document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
+document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeModal(); closeArchive(); } });
 
 /* ============================= 저장 / 보관함 (Google Apps Script 백엔드) ============================= */
 function isConfigured(){
   if(APPS_SCRIPT_URL.indexOf('여기에_배포된')>-1){
-    alert('먼저 코드 상단의 APPS_SCRIPT_URL 값을 배포한 Apps Script 웹앱 주소로 바꿔주세요.\n(전달된 배포 안내를 참고하세요)');
+    alert('먼저 코드 상단의 APPS_SCRIPT_URL 값을 배포한 Apps Script 웹앱 주소로 바꿔주세요.');
     return false;
   }
   return true;
 }
 
-/* GET 요청: Apps Script 응답을 <script> 태그로 불러오는 JSONP 방식 (CORS 우회) */
 function jsonp(params){
   return new Promise(function(resolve, reject){
     var cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*100000);
     var script = document.createElement('script');
-    var timer = setTimeout(function(){
-      cleanup(); reject(new Error('요청 시간 초과'));
-    }, 15000);
+    var timer = setTimeout(function(){ cleanup(); reject(new Error('요청 시간 초과')); }, 15000);
     function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
     window[cbName] = function(data){ cleanup(); resolve(data); };
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
@@ -892,38 +950,32 @@ function jsonp(params){
   });
 }
 
-/* POST 요청(저장/삭제): Apps Script는 CORS 프리플라이트를 허용하지 않으므로
-   no-cors + text/plain으로 전송합니다. 응답 본문은 읽을 수 없어(불투명 응답) 성공 여부를
-   별도로 확인하지 않고, 곧바로 목록을 새로고침해 반영 여부를 눈으로 확인합니다. */
-async function postToScript(body){
-  await fetch(APPS_SCRIPT_URL, {
+function postToScript(body){
+  return fetch(APPS_SCRIPT_URL, {
     method:'POST', mode:'no-cors',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify(body)
   });
 }
 
-async function saveMeeting(){
+function saveMeeting(){
   var m = state.meeting;
   if(!m.ordinal){ alert('회차(제 몇 차)를 먼저 입력해주세요.'); return; }
   if(!isConfigured()) return;
   m.id = String(m.ordinal);
   var badge = document.getElementById('saveBadge');
   badge.textContent='저장 중…'; badge.style.color='#B9C2D6';
-  try{
-    await postToScript({action:'save', meeting:m});
+  postToScript({action:'save', meeting:m}).then(function(){
     markClean();
-  }catch(err){
+  }).catch(function(err){
     console.error(err);
     alert('저장 중 오류가 발생했습니다. 네트워크 설정에서 script.google.com 접속이 허용되어 있는지 확인해주세요.');
-  }
+  });
 }
 
 function newMeeting(){
   if(dirty && !confirm('저장하지 않은 변경사항이 있습니다. 새 회의를 시작할까요?')) return;
-  var prevChair = state.meeting.meetingChair;
   var m = blankMeeting();
-  // 다음 회차 번호 자동 추정 + 직전 담당자는 비워두고 시작 (담당자는 매번 바뀌므로)
   var n = parseFloat(state.meeting.ordinal);
   if(!isNaN(n)) m.ordinal = String(n+1);
   state.meeting = m;
@@ -936,29 +988,25 @@ function newMeeting(){
 
 /* ---------- 보관함 패널 ---------- */
 var archiveIndexCache = [];
-async function openArchive(){
+function openArchive(){
   document.getElementById('archiveOverlay').classList.remove('hidden');
-  await refreshArchiveIndex();
+  refreshArchiveIndex();
 }
 function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
-document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
 
-async function refreshArchiveIndex(){
+function refreshArchiveIndex(){
   var list = document.getElementById('archiveList');
   list.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
   if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
-  try{
-    var res = await jsonp({action:'list'});
+  jsonp({action:'list'}).then(function(res){
     archiveIndexCache = (res && res.ok) ? res.items : [];
-  }catch(e){
+    renderArchiveList();
+  }).catch(function(){
     archiveIndexCache = [];
     list.innerHTML = '<div class="archive-empty">불러오기 실패.<br>네트워크 또는 배포 URL을 확인해주세요.</div>';
-    return;
-  }
-  renderArchiveList();
+  });
 }
 
-/* 날짜/회차/장소는 목록에서 바로 빠르게 필터링(서버 왕복 없이) */
 function renderArchiveList(){
   var q = (document.getElementById('archiveSearch').value||'').trim().toLowerCase();
   var list = document.getElementById('archiveList');
@@ -968,30 +1016,29 @@ function renderArchiveList(){
     return hay.indexOf(q)>-1;
   });
   if(items.length===0){ list.innerHTML='<div class="archive-empty">저장된 회의안이 없습니다.<br>먼저 "저장"을 눌러 보관해보세요.</div>'; return; }
-  list.innerHTML = items.map(function(x){
-    return '<div class="archive-item" onclick="loadMeeting(\\''+x.id+'\\')"><div class="t">제 '+esc(x.ordinal)+' 차 정기노회</div><div class="d">'+esc(x.dateDisplay||'')+' · '+esc(x.hostChurchKo||'')+'</div></div>';
-  }).join('');
+  var out = '';
+  items.forEach(function(x){
+    out += '<div class="archive-item js-load-meeting" data-id="'+esc(x.id)+'"><div class="t">제 '+esc(x.ordinal)+' 차 정기노회</div><div class="d">'+esc(x.dateDisplay||'')+' · '+esc(x.hostChurchKo||'')+'</div></div>';
+  });
+  list.innerHTML = out;
 }
 
-/* 회의 본문 내용(보고/동의안 텍스트)까지 서버에서 검색 */
-async function doContentSearch(){
+function doContentSearch(){
   var q = (document.getElementById('archiveSearch').value||'').trim();
   if(!q){ refreshArchiveIndex(); return; }
   if(!isConfigured()) return;
   document.getElementById('archiveList').innerHTML = '<div class="archive-empty">내용 검색 중…</div>';
-  try{
-    var res = await jsonp({action:'search', q:q});
+  jsonp({action:'search', q:q}).then(function(res){
     archiveIndexCache = (res && res.ok) ? res.items : [];
     renderArchiveList();
-  }catch(e){
+  }).catch(function(){
     document.getElementById('archiveList').innerHTML = '<div class="archive-empty">검색 실패</div>';
-  }
+  });
 }
 
-async function loadMeeting(id){
+function loadMeeting(id){
   if(!isConfigured()) return;
-  try{
-    var res = await jsonp({action:'get', id:id});
+  jsonp({action:'get', id:id}).then(function(res){
     if(!res || !res.ok || !res.meeting){ alert('불러오기에 실패했습니다.'); return; }
     state.meeting = res.meeting;
     navStack=[]; currentAnchor='cover';
@@ -999,12 +1046,12 @@ async function loadMeeting(id){
     render();
     closeArchive();
     window.scrollTo(0,0);
-  }catch(e){ alert('불러오기 중 오류가 발생했습니다.'); }
+  }).catch(function(){ alert('불러오기 중 오류가 발생했습니다.'); });
 }
 
 /* ============================= 초기화 ============================= */
 render();
-markDirty(); // 처음엔 아직 보관함에 저장되지 않은 예시 데이터 상태
+markDirty();
 </script>
 </body>
 </html>
