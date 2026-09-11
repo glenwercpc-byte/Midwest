@@ -1041,6 +1041,7 @@ var archiveIndexCache = [];  // 지금 화면에 실제로 그려지는 목록
 
 function openArchive(){
   document.getElementById('archiveOverlay').classList.remove('hidden');
+  document.getElementById('archiveSearch').value = '';
   refreshArchiveIndex();
 }
 function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
@@ -1104,9 +1105,19 @@ function doContentSearch(){
       archiveIndexCache = [];
       list.innerHTML = '<div class="archive-empty">검색 서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
     }
+    selectSearchBox();
   }).catch(function(err){
     list.innerHTML = '<div class="archive-empty">검색 요청 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+    selectSearchBox();
   });
+}
+
+/* 검색이 끝나면 검색어를 통째로 선택해둬서, 바로 다음 검색어를 타이핑하면
+   이전 검색어가 자동으로 지워지고 새로 입력되게 합니다. */
+function selectSearchBox(){
+  var box = document.getElementById('archiveSearch');
+  box.focus();
+  box.select();
 }
 
 
