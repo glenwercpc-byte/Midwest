@@ -319,6 +319,23 @@ body{
 .archive-item .t{font-family:'Noto Serif KR',serif;font-weight:600;color:var(--ink);font-size:14px;}
 .archive-item .d{font-size:12px;color:var(--sub);margin-top:3px;}
 .archive-empty{color:var(--sub);font-size:13px;text-align:center;margin-top:30px;}
+
+.line.search-hit{background:#fff3c4;border-radius:6px;}
+.line.search-hit-current{background:#ffe08a;border-radius:6px;box-shadow:inset 0 0 0 2px var(--gold);}
+.sub-label.search-hit-current{background:#ffe08a;border-radius:5px;padding:3px 8px;box-shadow:inset 0 0 0 2px var(--gold);}
+.search-nav-bar{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  background:var(--ink);color:var(--white);padding:9px 12px;border-radius:24px;
+  display:flex;align-items:center;gap:8px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);
+  z-index:80;font-family:'Noto Sans KR',sans-serif;max-width:92vw;
+}
+.search-nav-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw;}
+.search-nav-bar button{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:var(--white);
+  border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.search-nav-bar button:hover{background:rgba(255,255,255,.24);}
 .archive-actions{display:flex;gap:8px;margin-bottom:14px;}
 .archive-actions button{
   flex:1;padding:9px;border-radius:7px;border:1px solid var(--edge);background:var(--white);
@@ -334,7 +351,7 @@ body{
 }
 .page-num{display:none;}
 @media print{
-  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,.line-del,.addline-btn,.addsub-btn,.subdel{display:none!important;}
+  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -1038,10 +1055,16 @@ function newMeeting(){
 /* ---------- 보관함 패널 ---------- */
 var archiveFullCache = [];   // 서버에서 받아온 전체 목록 (빠른 필터용)
 var archiveIndexCache = [];  // 지금 화면에 실제로 그려지는 목록
+var lastSearchQuery = '';    // 마지막으로 실행한 "내용 전체 검색" 검색어
+var lastSearchResults = [];  // 그 검색의 결과 목록 (목록으로 돌아가기용)
+var searchMatches = [];      // 현재 불러온 회의 안에서 검색어가 등장하는 위치들
+var searchMatchIndex = -1;
 
 function openArchive(){
   document.getElementById('archiveOverlay').classList.remove('hidden');
   document.getElementById('archiveSearch').value = '';
+  lastSearchQuery = ''; lastSearchResults = [];
+  clearSearchMatches();
   refreshArchiveIndex();
 }
 function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
@@ -1077,9 +1100,7 @@ function applyQuickFilter(){
   renderArchiveList();
 }
 
-/* archiveIndexCache를 있는 그대로 그리기만 함 — 추가로 다시 걸러내지 않음.
-   (서버 "내용 전체 검색" 결과를 그릴 때 여기서 또 걸러버리면 결과가 사라지는
-   버그가 있었어서, 렌더링과 필터링을 분리했습니다.) */
+/* archiveIndexCache를 있는 그대로 그리기만 함 — 추가로 다시 걸러내지 않음. */
 function renderArchiveList(){
   var list = document.getElementById('archiveList');
   var items = archiveIndexCache;
@@ -1100,6 +1121,8 @@ function doContentSearch(){
   jsonp({action:'search', q:q}).then(function(res){
     if(res && res.ok){
       archiveIndexCache = res.items;
+      lastSearchQuery = q;
+      lastSearchResults = res.items;
       renderArchiveList();
     } else {
       archiveIndexCache = [];
@@ -1120,7 +1143,6 @@ function selectSearchBox(){
   box.select();
 }
 
-
 function loadMeeting(id){
   if(!isConfigured()) return;
   jsonp({action:'get', id:id}).then(function(res){
@@ -1131,8 +1153,144 @@ function loadMeeting(id){
     render();
     closeArchive();
     window.scrollTo(0,0);
+    if(lastSearchQuery){
+      setTimeout(function(){ showSearchMatches(lastSearchQuery); }, 60);
+    } else {
+      clearSearchMatches();
+    }
   }).catch(function(){ alert('불러오기 중 오류가 발생했습니다.'); });
 }
+
+/* ---------- 검색어 위치 찾기 / 하이라이트 / 이동 ---------- */
+function collectMatches(query){
+  var q = (query||'').trim().toLowerCase();
+  if(!q) return [];
+  var matches = [];
+  var sections = state.meeting.sections;
+  var order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+  order.forEach(function(k){
+    var sec = sections[k];
+    if(!sec) return;
+    if(sec.kind==='lines'){
+      (sec.lines||[]).forEach(function(line, idx){
+        if((line.text||'').toLowerCase().indexOf(q)>-1){
+          matches.push({path:['meeting','sections',k,'lines'], idx:idx});
+        }
+      });
+    } else if(sec.kind==='sub'){
+      (sec.subs||[]).forEach(function(sub, si){
+        if((sub.label||'').toLowerCase().indexOf(q)>-1){
+          matches.push({subLabelOnly:true, skey:k, subidx:si});
+        }
+        (sub.lines||[]).forEach(function(line, idx){
+          if((line.text||'').toLowerCase().indexOf(q)>-1){
+            matches.push({path:['meeting','sections',k,'subs',si,'lines'], idx:idx});
+          }
+        });
+      });
+    }
+  });
+  return matches;
+}
+
+function findMatchElement(m){
+  if(m.subLabelOnly){
+    return document.querySelector('#sec-'+m.skey+'-sub-'+m.subidx+' .sub-label');
+  }
+  var target = JSON.stringify(m.path);
+  var found = null;
+  document.querySelectorAll('.line-text[data-idx]').forEach(function(el){
+    if(found || el.dataset.path===undefined) return;
+    try{
+      var p = JSON.parse(el.dataset.path);
+      if(JSON.stringify(p)===target && parseInt(el.dataset.idx,10)===m.idx){ found = el.closest('.line'); }
+    }catch(e){}
+  });
+  return found;
+}
+
+function applyMatchHighlights(){
+  document.querySelectorAll('.search-hit,.search-hit-current').forEach(function(el){
+    el.classList.remove('search-hit','search-hit-current');
+  });
+  searchMatches.forEach(function(m, i){
+    var el = findMatchElement(m);
+    if(el) el.classList.add(i===searchMatchIndex ? 'search-hit-current' : 'search-hit');
+  });
+}
+
+function scrollToMatch(i){
+  var m = searchMatches[i];
+  if(!m) return;
+  var el = findMatchElement(m);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function showSearchMatches(query){
+  searchMatches = collectMatches(query);
+  searchMatchIndex = searchMatches.length ? 0 : -1;
+  renderSearchNavBar();
+  applyMatchHighlights();
+  if(searchMatchIndex>=0) scrollToMatch(searchMatchIndex);
+}
+
+function nextMatch(){
+  if(!searchMatches.length) return;
+  searchMatchIndex = (searchMatchIndex+1) % searchMatches.length;
+  applyMatchHighlights(); scrollToMatch(searchMatchIndex); updateSearchNavBar();
+}
+function prevMatch(){
+  if(!searchMatches.length) return;
+  searchMatchIndex = (searchMatchIndex-1+searchMatches.length) % searchMatches.length;
+  applyMatchHighlights(); scrollToMatch(searchMatchIndex); updateSearchNavBar();
+}
+
+function backToSearchResults(){
+  document.getElementById('archiveOverlay').classList.remove('hidden');
+  document.getElementById('archiveSearch').value = lastSearchQuery;
+  archiveIndexCache = lastSearchResults;
+  renderArchiveList();
+}
+
+function clearSearchMatches(){
+  searchMatches = []; searchMatchIndex = -1;
+  document.querySelectorAll('.search-hit,.search-hit-current').forEach(function(el){
+    el.classList.remove('search-hit','search-hit-current');
+  });
+  var bar = document.getElementById('searchNavBar');
+  if(bar) bar.parentNode.removeChild(bar);
+}
+
+function renderSearchNavBar(){
+  var bar = document.getElementById('searchNavBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'searchNavBar';
+    bar.className = 'search-nav-bar';
+    document.body.appendChild(bar);
+  }
+  updateSearchNavBar();
+}
+
+function updateSearchNavBar(){
+  var bar = document.getElementById('searchNavBar');
+  if(!bar) return;
+  if(!searchMatches.length){
+    bar.innerHTML = '<span>"'+esc(lastSearchQuery)+'" 일치 항목 없음</span>';
+  } else {
+    bar.innerHTML =
+      '<span>🔎 "'+esc(lastSearchQuery)+'" '+(searchMatchIndex+1)+' / '+searchMatches.length+'</span>'+
+      '<button type="button" id="snbPrev">◀ 이전</button>'+
+      '<button type="button" id="snbNext">다음 ▶</button>'+
+      '<button type="button" id="snbBack">목록으로</button>';
+  }
+  bar.innerHTML += '<button type="button" id="snbClose">✕</button>';
+  var prevBtn = bar.querySelector('#snbPrev'); if(prevBtn) prevBtn.onclick = prevMatch;
+  var nextBtn = bar.querySelector('#snbNext'); if(nextBtn) nextBtn.onclick = nextMatch;
+  var backBtn = bar.querySelector('#snbBack'); if(backBtn) backBtn.onclick = backToSearchResults;
+  bar.querySelector('#snbClose').onclick = clearSearchMatches;
+}
+
 
 /* ============================= 초기화 ============================= */
 render();
