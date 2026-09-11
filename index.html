@@ -295,6 +295,14 @@ body{
   color:#4a3a05;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
 }
 .boo-actions button:hover{background:var(--gold);color:#241C08;}
+.boo-toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--white);padding:10px 16px;border-radius:20px;
+  font-size:12.5px;font-family:'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  max-width:90vw;
+}
+.boo-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .modal-body textarea{
   width:100%;min-height:160px;border:1px solid var(--edge);border-radius:6px;padding:10px;
 
@@ -350,7 +358,7 @@ body{
 }
 .page-num{display:none;}
 @media print{
-  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#booOverlay,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#booOverlay,#booToast,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -425,7 +433,7 @@ body{
       <button class="modal-close" onclick="closeBookOfOrder()">✕</button>
     </div>
     <div class="modal-body">
-      <p class="boo-note">미국장로교(PC(USA)) 공식 규례서(Book of Order) 최신판(2025–2027)을 새 탭에서 찾아봅니다. 검색어를 입력하고 언어를 고르면 해당 PDF가 열립니다 — 지원 브라우저에서는 그 단어가 있는 곳으로 자동 이동하고, 안 되면 PDF 안에서 Ctrl+F(Mac은 Cmd+F)로 찾아보세요.</p>
+      <p class="boo-note">미국장로교(PC(USA)) 공식 규례서(Book of Order) 최신판(2025–2027)을 새 탭에서 찾아봅니다. 검색어를 입력하고 언어를 고르면 PDF가 열리면서 그 단어가 자동으로 복사됩니다 — PDF 안에서 Ctrl+F(Mac은 Cmd+F)를 누르고 Ctrl+V(붙여넣기)로 바로 찾아보세요.</p>
       <input class="boo-input" id="booQuery" placeholder="예: 정관 개정, 권징, quorum" onkeydown="if(event.key==='Enter'){ openBookOfOrderPdf('ko'); }">
       <div class="boo-actions">
         <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
@@ -965,8 +973,26 @@ function closeBookOfOrder(){ document.getElementById('booOverlay').classList.add
 function openBookOfOrderPdf(lang){
   var q = (document.getElementById('booQuery').value||'').trim();
   var base = (lang==='en') ? BOO_URL_EN : BOO_URL_KO;
-  var url = base + (q ? '#search=' + encodeURIComponent(q) : '');
+  var url = base + '#zoom=200';
+  if(q && navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(q).then(function(){ showBooToast('"'+q+'" 복사됨 — PDF에서 Ctrl+F(Cmd+F) 후 붙여넣기(Ctrl+V) 하세요'); });
+  } else if(q){
+    showBooToast('PDF가 열리면 Ctrl+F(Cmd+F)로 "'+q+'"를 찾아보세요');
+  }
   window.open(url, '_blank', 'noopener');
+}
+function showBooToast(msg){
+  var t = document.getElementById('booToast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'booToast';
+    t.className = 'boo-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(function(){ t.classList.remove('show'); }, 5000);
 }
 
 /* ============================= 편집모드 토글 ============================= */
