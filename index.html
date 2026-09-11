@@ -309,7 +309,8 @@ body{
 .archive-head{padding:18px 20px;border-bottom:1px solid var(--edge);background:var(--ink);color:var(--white);display:flex;justify-content:space-between;align-items:center;}
 .archive-head h3{font-family:'Noto Serif KR',serif;margin:0;font-size:16px;}
 .archive-body{padding:16px 20px;}
-.archive-search{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;font-size:13.5px;margin-bottom:14px;font-family:'Noto Sans KR',sans-serif;}
+.archive-search{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;font-size:13.5px;margin-bottom:6px;font-family:'Noto Sans KR',sans-serif;}
+.search-hint{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:14px;}
 .archive-item{
   background:var(--white);border:1px solid var(--edge);border-radius:7px;padding:12px 14px;
   margin-bottom:10px;cursor:pointer;
@@ -410,7 +411,8 @@ body{
       <button class="modal-close" onclick="closeArchive()">✕</button>
     </div>
     <div class="archive-body">
-      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="renderArchiveList()">
+      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="renderArchiveList()" onkeydown="if(event.key==='Enter'){ doContentSearch(); }">
+      <div class="search-hint">회차·날짜·교회명은 입력 즉시 걸러지고, 보고/동의안 내용까지 찾으려면 <b>Enter</b>를 누르거나 아래 "내용 전체 검색"을 눌러주세요.</div>
       <div class="archive-actions">
         <button onclick="refreshArchiveIndex()">🔄 목록 새로고침</button>
         <button onclick="doContentSearch()">🔎 내용 전체 검색</button>
@@ -1046,11 +1048,16 @@ function refreshArchiveIndex(){
   list.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
   if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'list'}).then(function(res){
-    archiveIndexCache = (res && res.ok) ? res.items : [];
-    renderArchiveList();
-  }).catch(function(){
+    if(res && res.ok){
+      archiveIndexCache = res.items;
+      renderArchiveList();
+    } else {
+      archiveIndexCache = [];
+      list.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+    }
+  }).catch(function(err){
     archiveIndexCache = [];
-    list.innerHTML = '<div class="archive-empty">불러오기 실패.<br>네트워크 또는 배포 URL을 확인해주세요.</div>';
+    list.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
 
@@ -1074,12 +1081,18 @@ function doContentSearch(){
   var q = (document.getElementById('archiveSearch').value||'').trim();
   if(!q){ refreshArchiveIndex(); return; }
   if(!isConfigured()) return;
-  document.getElementById('archiveList').innerHTML = '<div class="archive-empty">내용 검색 중…</div>';
+  var list = document.getElementById('archiveList');
+  list.innerHTML = '<div class="archive-empty">내용 검색 중…</div>';
   jsonp({action:'search', q:q}).then(function(res){
-    archiveIndexCache = (res && res.ok) ? res.items : [];
-    renderArchiveList();
-  }).catch(function(){
-    document.getElementById('archiveList').innerHTML = '<div class="archive-empty">검색 실패</div>';
+    if(res && res.ok){
+      archiveIndexCache = res.items;
+      renderArchiveList();
+    } else {
+      archiveIndexCache = [];
+      list.innerHTML = '<div class="archive-empty">검색 서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+    }
+  }).catch(function(err){
+    list.innerHTML = '<div class="archive-empty">검색 요청 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
 
