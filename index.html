@@ -411,7 +411,7 @@ body{
       <button class="modal-close" onclick="closeArchive()">✕</button>
     </div>
     <div class="archive-body">
-      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="renderArchiveList()" onkeydown="if(event.key==='Enter'){ doContentSearch(); }">
+      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="applyQuickFilter()" onkeydown="if(event.key==='Enter'){ doContentSearch(); }">
       <div class="search-hint">회차·날짜·교회명은 입력 즉시 걸러지고, 보고/동의안 내용까지 찾으려면 <b>Enter</b>를 누르거나 아래 "내용 전체 검색"을 눌러주세요.</div>
       <div class="archive-actions">
         <button onclick="refreshArchiveIndex()">🔄 목록 새로고침</button>
@@ -1036,7 +1036,9 @@ function newMeeting(){
 }
 
 /* ---------- 보관함 패널 ---------- */
-var archiveIndexCache = [];
+var archiveFullCache = [];   // 서버에서 받아온 전체 목록 (빠른 필터용)
+var archiveIndexCache = [];  // 지금 화면에 실제로 그려지는 목록
+
 function openArchive(){
   document.getElementById('archiveOverlay').classList.remove('hidden');
   refreshArchiveIndex();
@@ -1049,26 +1051,37 @@ function refreshArchiveIndex(){
   if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'list'}).then(function(res){
     if(res && res.ok){
-      archiveIndexCache = res.items;
-      renderArchiveList();
+      archiveFullCache = res.items;
+      applyQuickFilter();
     } else {
-      archiveIndexCache = [];
+      archiveFullCache = []; archiveIndexCache = [];
       list.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
     }
   }).catch(function(err){
-    archiveIndexCache = [];
+    archiveFullCache = []; archiveIndexCache = [];
     list.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
 
-function renderArchiveList(){
+/* 검색창에 입력하는 즉시 실행되는, 회차/날짜/교회명만 보는 빠른 필터
+   (서버 왕복 없이 archiveFullCache를 그대로 걸러서 보여줌) */
+function applyQuickFilter(){
   var q = (document.getElementById('archiveSearch').value||'').trim().toLowerCase();
-  var list = document.getElementById('archiveList');
-  var items = archiveIndexCache.filter(function(x){
+  var items = archiveFullCache.filter(function(x){
     if(!q) return true;
     var hay = [x.id,x.ordinal,x.dateDisplay,x.dateISO,x.hostChurchKo].join(' ').toLowerCase();
     return hay.indexOf(q)>-1;
   });
+  archiveIndexCache = items;
+  renderArchiveList();
+}
+
+/* archiveIndexCache를 있는 그대로 그리기만 함 — 추가로 다시 걸러내지 않음.
+   (서버 "내용 전체 검색" 결과를 그릴 때 여기서 또 걸러버리면 결과가 사라지는
+   버그가 있었어서, 렌더링과 필터링을 분리했습니다.) */
+function renderArchiveList(){
+  var list = document.getElementById('archiveList');
+  var items = archiveIndexCache;
   if(items.length===0){ list.innerHTML='<div class="archive-empty">저장된 회의안이 없습니다.<br>먼저 "저장"을 눌러 보관해보세요.</div>'; return; }
   var out = '';
   items.forEach(function(x){
@@ -1095,6 +1108,7 @@ function doContentSearch(){
     list.innerHTML = '<div class="archive-empty">검색 요청 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
+
 
 function loadMeeting(id){
   if(!isConfigured()) return;
