@@ -1064,8 +1064,10 @@ function openArchive(){
   document.getElementById('archiveOverlay').classList.remove('hidden');
   document.getElementById('archiveSearch').value = '';
   lastSearchQuery = ''; lastSearchResults = [];
+  archiveFullCache = []; archiveIndexCache = [];
   clearSearchMatches();
-  refreshArchiveIndex();
+  document.getElementById('archiveList').innerHTML =
+    '<div class="archive-empty">검색어를 입력하고 Enter를 누르거나,<br>아래 "🔄 목록 새로고침"을 눌러 전체 목록을 확인하세요.</div>';
 }
 function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
 
