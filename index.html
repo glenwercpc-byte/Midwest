@@ -79,28 +79,18 @@ body{
   font-family:'Noto Serif KR',serif;font-size:13px;color:var(--sub);
   margin:0 0 10px 4px;font-weight:600;letter-spacing:.03em;
 }
-.toc-item{
-  display:block;width:100%;text-align:left;
-  background:none;border:none;cursor:pointer;
+#tocPanel .toc-row, #tocPanel .toc-subrow{
+  display:block;width:100%;text-align:left;cursor:pointer;
   padding:7px 8px;border-radius:6px;
   font-family:'Noto Serif KR',serif;font-size:13.5px;color:var(--ink-soft);
-  line-height:1.4;
+  line-height:1.4;transition:background .12s ease,color .12s ease;
 }
-.toc-item:hover{background:var(--navy-soft);}
-.toc-item .n{color:var(--gold);font-weight:700;margin-right:6px;}
-.toc-item.active{background:var(--ink);color:var(--white);}
-.toc-item.active .n{color:var(--gold-soft);}
-.toc-sub{padding-left:20px;font-size:12.5px;color:var(--sub);}
-.toc-sub:hover{background:var(--navy-soft);}
-.backbar{
-  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+#tocPanel .toc-row:hover, #tocPanel .toc-subrow:hover{
+  background:var(--navy-soft);color:var(--ink);font-weight:700;
 }
-.backbtn{
-  background:var(--white);border:1px solid var(--edge);
-  border-radius:7px;padding:7px 10px;font-size:12.5px;
-  cursor:pointer;color:var(--ink-soft);font-weight:600;
-}
-.backbtn:disabled{opacity:.35;cursor:default;}
+#tocPanel .toc-row .n{color:var(--gold);font-weight:700;margin-right:6px;}
+#tocPanel .toc-subrow{padding-left:20px;font-size:12.5px;color:var(--sub);}
+#tocPanel .toc-subrow:hover{color:var(--ink);}
 
 #docPanel{flex:1;min-width:0;padding:32px 20px 120px;display:flex;flex-direction:column;align-items:center;}
 
@@ -401,9 +391,6 @@ body{
 
   <div class="workspace">
     <aside id="tocPanel">
-      <div class="backbar">
-        <button class="backbtn" id="backBtn" onclick="goBack()" disabled>← 이전 회순</button>
-      </div>
       <h3>회순 (docket)</h3>
       <div id="tocList"></div>
     </aside>
@@ -607,7 +594,6 @@ function seedMeeting105(){
 /* ============================= 전역 상태 ============================= */
 var state = { meeting: seedMeeting105() };
 var editMode = false;
-var navStack = [];
 var currentAnchor = 'cover';
 var io = null;
 var dirty = false;
@@ -913,18 +899,9 @@ function scrollToAnchor(anchor){
 }
 function gotoSection(k, subIdx){
   var target = (subIdx!==undefined && subIdx!==null && subIdx!=='') ? (k+'-sub-'+subIdx) : k;
-  if(currentAnchor && currentAnchor!==target){ navStack.push(currentAnchor); }
-  document.getElementById('backBtn').disabled = navStack.length===0;
   scrollToAnchor(target);
   currentAnchor = target;
   closeTocPanelMobile();
-}
-function goBack(){
-  if(!navStack.length) return;
-  var prev = navStack.pop();
-  document.getElementById('backBtn').disabled = navStack.length===0;
-  scrollToAnchor(prev);
-  currentAnchor = prev;
 }
 function setupObserver(){
   if(io) io.disconnect();
@@ -1045,7 +1022,7 @@ function newMeeting(){
   var n = parseFloat(state.meeting.ordinal);
   if(!isNaN(n)) m.ordinal = String(n+1);
   state.meeting = m;
-  navStack=[]; currentAnchor='cover';
+  currentAnchor='cover';
   editMode = true;
   markDirty();
   render();
@@ -1150,7 +1127,7 @@ function loadMeeting(id){
   jsonp({action:'get', id:id}).then(function(res){
     if(!res || !res.ok || !res.meeting){ alert('불러오기에 실패했습니다.'); return; }
     state.meeting = res.meeting;
-    navStack=[]; currentAnchor='cover';
+    currentAnchor='cover';
     markClean();
     render();
     closeArchive();
