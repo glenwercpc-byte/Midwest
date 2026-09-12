@@ -267,11 +267,11 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#booOverlay{
+#modalOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#booOverlay.hidden{display:none;}
+#modalOverlay.hidden{display:none;}
 .modal-box{
   background:var(--white);max-width:560px;width:100%;max-height:80vh;overflow-y:auto;
   border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
@@ -287,22 +287,22 @@ body{
   width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;
 }
 .modal-body{padding:18px 20px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink-soft);}
-.boo-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
-.boo-input{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
-.boo-actions{display:flex;gap:8px;margin-top:12px;}
-.boo-actions button{
-  flex:1;padding:10px;border-radius:7px;border:1px solid var(--gold);background:var(--gold-soft);
-  color:#4a3a05;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+
+/* 규례서 드롭다운 메뉴 */
+.boo-dropdown{position:relative;}
+.boo-menu{
+  position:absolute;top:calc(100% + 6px);left:0;
+  background:var(--white);border:1px solid var(--edge);border-radius:8px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);padding:6px;min-width:200px;z-index:110;
+  display:flex;flex-direction:column;gap:4px;
 }
-.boo-actions button:hover{background:var(--gold);color:#241C08;}
-.boo-toast{
-  position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:var(--white);padding:10px 16px;border-radius:20px;
-  font-size:12.5px;font-family:'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);
-  z-index:200;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
-  max-width:90vw;
+.boo-menu.hidden{display:none;}
+.boo-menu button{
+  background:none;border:none;text-align:left;padding:9px 10px;border-radius:6px;
+  font-size:13px;color:var(--ink);cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  white-space:nowrap;
 }
-.boo-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.boo-menu button:hover{background:var(--paper-deep);}
 .modal-body textarea{
   width:100%;min-height:160px;border:1px solid var(--edge);border-radius:6px;padding:10px;
 
@@ -358,7 +358,7 @@ body{
 }
 .page-num{display:none;}
 @media print{
-  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#booOverlay,#booToast,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -398,7 +398,13 @@ body{
   <div class="toolbar">
     <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
     <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
-    <button class="tbtn" id="booToggleBtn" onclick="openBookOfOrder()">📖 규례서</button>
+    <div class="boo-dropdown">
+      <button class="tbtn" id="booToggleBtn" onclick="toggleBooMenu(event)">📖 규례서</button>
+      <div class="boo-menu hidden" id="booMenu">
+        <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
+        <button type="button" onclick="openBookOfOrderPdf('en')">English (Book of Order)</button>
+      </div>
+    </div>
     <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
     <span class="savebadge" id="saveBadge">저장 안 됨</span>
     <button class="tbtn" onclick="saveMeeting()">저장</button>
@@ -423,23 +429,6 @@ body{
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
-  </div>
-</div>
-
-<div id="booOverlay" class="hidden">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3>📖 규례서 찾아보기</h3>
-      <button class="modal-close" onclick="closeBookOfOrder()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="boo-note">미국장로교(PC(USA)) 공식 규례서(Book of Order) 최신판(2025–2027)을 새 탭에서 찾아봅니다. 검색어를 입력하고 언어를 고르면 PDF가 열리면서 그 단어가 자동으로 복사됩니다 — PDF 안에서 Ctrl+F(Mac은 Cmd+F)를 누르고 Ctrl+V(붙여넣기)로 바로 찾아보세요.</p>
-      <input class="boo-input" id="booQuery" placeholder="예: 정관 개정, 권징, quorum" onkeydown="if(event.key==='Enter'){ openBookOfOrderPdf('ko'); }">
-      <div class="boo-actions">
-        <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
-        <button type="button" onclick="openBookOfOrderPdf('en')">English (Book of Order)</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -963,37 +952,20 @@ function closeModal(){ document.getElementById('modalOverlay').classList.add('hi
 var BOO_URL_KO = 'https://pcusa.org/sites/default/files/2026-08/Book_of_Order_2025-27_KO.pdf';
 var BOO_URL_EN = 'https://pcusa.org/sites/default/files/2025-08/2025_0724_Book_of_Order_Interactive_2025-2027.pdf';
 
-function openBookOfOrder(){
-  document.getElementById('booOverlay').classList.remove('hidden');
-  var box = document.getElementById('booQuery');
-  box.value = '';
-  box.focus();
+function toggleBooMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('booMenu').classList.toggle('hidden');
 }
-function closeBookOfOrder(){ document.getElementById('booOverlay').classList.add('hidden'); }
+function closeBooMenu(){ document.getElementById('booMenu').classList.add('hidden'); }
 function openBookOfOrderPdf(lang){
-  var q = (document.getElementById('booQuery').value||'').trim();
   var base = (lang==='en') ? BOO_URL_EN : BOO_URL_KO;
-  var url = base + '#zoom=200';
-  if(q && navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(q).then(function(){ showBooToast('"'+q+'" 복사됨 — PDF에서 Ctrl+F(Cmd+F) 후 붙여넣기(Ctrl+V) 하세요'); });
-  } else if(q){
-    showBooToast('PDF가 열리면 Ctrl+F(Cmd+F)로 "'+q+'"를 찾아보세요');
-  }
-  window.open(url, '_blank', 'noopener');
+  window.open(base + '#zoom=200', '_blank', 'noopener');
+  closeBooMenu();
 }
-function showBooToast(msg){
-  var t = document.getElementById('booToast');
-  if(!t){
-    t = document.createElement('div');
-    t.id = 'booToast';
-    t.className = 'boo-toast';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._hideTimer);
-  t._hideTimer = setTimeout(function(){ t.classList.remove('show'); }, 5000);
-}
+document.addEventListener('click', function(e){
+  var menu = document.getElementById('booMenu');
+  if(!menu.classList.contains('hidden') && !e.target.closest('.boo-dropdown')){ closeBooMenu(); }
+});
 
 /* ============================= 편집모드 토글 ============================= */
 function toggleEditMode(){ editMode=!editMode; render(); }
@@ -1041,8 +1013,7 @@ document.getElementById('tocList').addEventListener('click', onWorkspaceClick);
 document.getElementById('archiveList').addEventListener('click', onWorkspaceClick);
 document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
 document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
-document.getElementById('booOverlay').addEventListener('click', function(e){ if(e.target.id==='booOverlay') closeBookOfOrder(); });
-document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeModal(); closeArchive(); closeBookOfOrder(); } });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeModal(); closeArchive(); closeBooMenu(); } });
 
 /* ============================= 저장 / 보관함 (Google Apps Script 백엔드) ============================= */
 function isConfigured(){
