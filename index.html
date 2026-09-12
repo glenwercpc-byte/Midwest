@@ -350,11 +350,16 @@ body{
 }
 .archive-actions button.danger{color:var(--maroon);border-color:var(--maroon-soft);}
 
+.toolbar-row1,.toolbar-row2{display:contents;}
 @media (max-width:860px){
   #tocPanel{position:fixed;left:0;top:54px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .2s ease;max-height:none;width:82%;box-shadow:8px 0 30px rgba(0,0,0,.25);}
   #tocPanel.open{transform:translateX(0);}
   .page{padding:30px 20px;}
   .toolbar .brand small{display:none;}
+  .toolbar{flex-wrap:wrap;row-gap:8px;}
+  .toolbar-row1{display:flex;align-items:center;width:100%;gap:8px;}
+  .toolbar-row1 .brand{flex:1;text-align:center;margin-right:0;}
+  .toolbar-row2{display:flex;flex-wrap:wrap;justify-content:center;width:100%;gap:8px;}
 }
 .page-num{display:none;}
 @media print{
@@ -396,21 +401,25 @@ body{
 <body>
 <div id="app">
   <div class="toolbar">
-    <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
-    <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
-    <div class="boo-dropdown">
-      <button class="tbtn" id="booToggleBtn" onclick="toggleBooMenu(event)">📖 규례서</button>
-      <div class="boo-menu hidden" id="booMenu">
-        <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
-        <button type="button" onclick="openBookOfOrderPdf('en')">English (Book of Order)</button>
+    <div class="toolbar-row1">
+      <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
+      <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
+      <div class="boo-dropdown">
+        <button class="tbtn" id="booToggleBtn" onclick="toggleBooMenu(event)">📖 규례서</button>
+        <div class="boo-menu hidden" id="booMenu">
+          <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
+          <button type="button" onclick="openBookOfOrderPdf('en')">English (Book of Order)</button>
+        </div>
       </div>
     </div>
-    <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
-    <span class="savebadge" id="saveBadge">저장 안 됨</span>
-    <button class="tbtn" onclick="saveMeeting()">저장</button>
-    <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
-    <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
-    <button class="tbtn primary" onclick="newMeeting()">새 회의</button>
+    <div class="toolbar-row2">
+      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
+      <span class="savebadge" id="saveBadge">저장 안 됨</span>
+      <button class="tbtn" onclick="saveMeeting()">저장</button>
+      <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
+      <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
+      <button class="tbtn primary" onclick="newMeeting()">새 회의</button>
+    </div>
   </div>
 
   <div class="workspace">
