@@ -365,10 +365,10 @@ body{
 .org-exec-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin-bottom:10px;padding-bottom:4px;}
 .org-exec-chip{
   background:var(--paper);border:1px solid var(--edge);border-radius:7px;padding:8px 10px;
-  display:flex;flex-direction:column;gap:3px;flex:1 0 150px;min-width:150px;
+  display:flex;align-items:center;gap:6px;flex:1 0 210px;min-width:210px;
 }
-.org-exec-chip .lbl{font-size:11px;font-weight:700;color:var(--maroon);white-space:nowrap;}
-.org-exec-chip input{border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:12.5px;padding:2px;font-family:'Noto Sans KR',sans-serif;width:100%;}
+.org-exec-chip .lbl{font-size:11px;font-weight:700;color:var(--maroon);white-space:nowrap;flex:0 0 auto;}
+.org-exec-chip input{border:none;border-bottom:1px dotted var(--edge);background:transparent;font-size:12.5px;padding:2px;font-family:'Noto Sans KR',sans-serif;flex:1;min-width:0;}
 .org-exec-chip input:focus{outline:none;border-bottom:1px solid var(--gold);}
 .org-exec-wide{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .org-exec-wide-row{
@@ -399,6 +399,15 @@ body{
   padding:3px 6px;cursor:pointer;margin-top:2px;font-family:'Noto Sans KR',sans-serif;
 }
 .org-person-add:hover{border-color:var(--gold);color:var(--gold);}
+
+.org-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
+.org-print-view .op-title{font-family:'Noto Serif KR',serif;font-size:14px;font-weight:700;margin:0 0 8px;text-align:center;}
+.org-print-view .op-exec-row{display:flex;flex-wrap:wrap;gap:3px 16px;margin-bottom:10px;font-size:10px;border-bottom:1px solid #999;padding-bottom:8px;}
+.org-print-view .op-exec-row span.k{font-weight:700;margin-right:3px;}
+.org-print-view table{width:100%;border-collapse:collapse;}
+.org-print-view th,.org-print-view td{border:1px solid #999;padding:3px 5px;font-size:9.5px;vertical-align:top;line-height:1.4;text-align:left;}
+.org-print-view th{background:#eee;font-family:'Noto Serif KR',serif;font-weight:700;text-align:center;}
+.org-print-view td:first-child{font-weight:700;white-space:nowrap;text-align:center;background:#f5f5f5;}
 
 .line.search-hit{background:#fff3c4;border-radius:6px;}
 .line.search-hit-current{background:#ffe08a;border-radius:6px;box-shadow:inset 0 0 0 2px var(--gold);}
@@ -462,8 +471,8 @@ body{
   body.printing-org .org-panel{max-width:100%!important;width:100%!important;box-shadow:none!important;border:none!important;margin:0!important;}
   body.printing-org .org-head{position:static!important;border-radius:0!important;background:none!important;border-bottom:2px solid var(--ink)!important;}
   body.printing-org .org-head-actions{display:none!important;}
-  body.printing-org .org-person-del,body.printing-org .org-person-add{display:none!important;}
-  body.printing-org .org-table{min-width:0!important;}
+  body.printing-org #orgBody{display:none!important;}
+  body.printing-org .org-print-view{display:block!important;}
 }
 
 .attach-on{background:var(--gold-soft)!important;color:#4a3a05!important;border:1px solid var(--gold)!important;}
@@ -557,6 +566,7 @@ body{
       </div>
     </div>
     <div class="org-body" id="orgBody">불러오는 중…</div>
+    <div class="org-print-view" id="orgPrintView"></div>
   </div>
 </div>
 
@@ -1446,11 +1456,46 @@ function confirmNewOrg(mode){
 }
 
 /* ---------- 인쇄 ---------- */
+function buildOrgPrintView(){
+  var d = pruneEmptyNames(orgState);
+  var out = '';
+  out += '<div class="op-exec-row">';
+  d.executives.forEach(function(ex){
+    out += '<span><span class="k">'+esc(ex.title)+':</span>'+esc(ex.name||'-')+'</span>';
+  });
+  out += '</div>';
+  out += '<table><thead><tr><th>위원회</th><th>'+esc(d.columnTitles.col1)+'</th><th>'+esc(d.columnTitles.col2)+'</th><th>'+esc(d.columnTitles.col3)+'</th></tr></thead><tbody>';
+  d.committees.forEach(function(comm){
+    out += '<tr><td>'+esc(comm.name)+'</td>';
+    ['col1','col2','col3'].forEach(function(c){
+      var names = (comm[c+'_left']||[]).concat(comm[c+'_right']||[]);
+      out += '<td>'+(names.length ? names.map(esc).join(', ') : '-')+'</td>';
+    });
+    out += '</tr>';
+  });
+  out += '</tbody></table>';
+  document.getElementById('orgPrintView').innerHTML = out;
+}
+
 function printOrgPanel(){
+  if(!orgState) return;
+  buildOrgPrintView();
   document.body.classList.add('printing-org');
+
+  var landscapeStyle = document.createElement('style');
+  landscapeStyle.id = 'orgLandscapeStyle';
+  landscapeStyle.textContent = '@page{ size: landscape; margin: 0.4in; }';
+  document.head.appendChild(landscapeStyle);
+
   window.print();
 }
-window.addEventListener('afterprint', function(){ document.body.classList.remove('printing-org'); });
+window.addEventListener('afterprint', function(){
+  document.body.classList.remove('printing-org');
+  var landscapeStyle = document.getElementById('orgLandscapeStyle');
+  if(landscapeStyle) landscapeStyle.parentNode.removeChild(landscapeStyle);
+  var view = document.getElementById('orgPrintView');
+  if(view){ view.innerHTML=''; }
+});
 
 /* 목록을 최소 2칸까지 빈 칸으로 채워서 보여줍니다 (실제 데이터에는 저장 시점에만 반영). */
 function paddedList(arr){
