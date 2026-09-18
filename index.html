@@ -410,13 +410,15 @@ body{
 .org-person-add:hover{border-color:var(--gold);color:var(--gold);}
 
 .org-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
-.org-print-view .op-title{font-family:'Noto Serif KR',serif;font-size:20px;font-weight:700;margin:0 0 14px;text-align:center;}
-.org-print-view .op-exec-row{display:flex;flex-wrap:wrap;gap:6px 22px;margin-bottom:16px;font-size:14px;border-bottom:1px solid #999;padding-bottom:12px;}
-.org-print-view .op-exec-row span.k{font-weight:700;margin-right:4px;}
+.org-print-view .op-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;margin:0 0 10px;text-align:center;}
+.org-print-view .op-exec-main{display:grid;grid-template-columns:repeat(6,1fr);gap:2px 8px;font-size:10px;margin-bottom:4px;}
+.org-print-view .op-exec-main div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.org-print-view .op-exec-wide{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:10px;margin-bottom:8px;border-bottom:1px solid #999;padding-bottom:8px;}
+.org-print-view .op-exec-main span.k,.org-print-view .op-exec-wide span.k{font-weight:700;margin-right:3px;}
 .org-print-view table{width:100%;border-collapse:collapse;}
-.org-print-view th,.org-print-view td{border:1px solid #999;padding:7px 9px;font-size:13.5px;vertical-align:top;line-height:1.6;text-align:left;}
-.org-print-view .op-merged-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 14px;}
-.org-print-view th{background:#eee;font-family:'Noto Serif KR',serif;font-weight:700;text-align:center;font-size:14px;}
+.org-print-view th,.org-print-view td{border:1px solid #999;padding:5px 7px;font-size:11px;vertical-align:top;line-height:1.45;text-align:left;}
+.org-print-view .op-merged-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px 12px;}
+.org-print-view th{background:#eee;font-family:'Noto Serif KR',serif;font-weight:700;text-align:center;font-size:11.5px;}
 .org-print-view td:first-child{font-weight:700;white-space:nowrap;text-align:center;background:#f5f5f5;vertical-align:middle;}
 
 .line.search-hit{background:#fff3c4;border-radius:6px;}
@@ -1404,6 +1406,31 @@ function openOrgPanel(){
 }
 function closeOrgPanel(){ document.getElementById('orgOverlay').classList.add('hidden'); }
 
+/** 왼쪽이 비어있는데 오른쪽에 이름이 들어있으면(빈 칸 옆에 이름이 떠보이는 현상)
+    자동으로 왼쪽으로 옮겨줍니다. 좌/우가 둘 다 이름이 있으면 그대로 둡니다. */
+function normalizeOrgData(d){
+  function stripTrailingBlanks(arr){
+    var a = (arr||[]).slice();
+    while(a.length && (a[a.length-1]||'').trim()===''){ a.pop(); }
+    return a;
+  }
+  d.committees.forEach(function(comm){
+    ['col1_left','col1_right','col2_left','col2_right','col3_left','col3_right'].forEach(function(f){
+      comm[f] = stripTrailingBlanks(comm[f]);
+    });
+    ['col1','col2','col3'].forEach(function(c){
+      var leftField = c+'_left', rightField = c+'_right';
+      var left = comm[leftField]||[];
+      var right = comm[rightField]||[];
+      if(left.length===0 && right.length>0){
+        comm[leftField] = right;
+        comm[rightField] = [];
+      }
+    });
+  });
+  return d;
+}
+
 function loadOrgData(){
   var body = document.getElementById('orgBody');
   body.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
@@ -1412,6 +1439,7 @@ function loadOrgData(){
     if(res && res.ok){
       orgState = res.org ? res.org : deepClone(orgInitialData);
       if(!orgState.year) orgState.year = new Date().getFullYear();
+      normalizeOrgData(orgState);
       orgLoaded = true;
       markOrgClean();
       renderOrgBody();
@@ -1467,6 +1495,7 @@ function confirmNewOrg(mode){
     });
   }
   orgState.year = year;
+  normalizeOrgData(orgState);
   orgLoaded = true;
   closeNewOrgDialog();
   renderOrgBody();
@@ -1479,9 +1508,14 @@ function buildOrgPrintView(){
   var d = pruneEmptyNames(orgState);
   var MERGED_COMMITTEES = { '상임 사법 전권':1, '준회원(MAL)':1, '총회, 해외':1 };
   var out = '';
-  out += '<div class="op-exec-row">';
-  d.executives.forEach(function(ex){
-    out += '<span><span class="k">'+esc(ex.title)+':</span>'+esc(ex.name||'-')+'</span>';
+  out += '<div class="op-exec-main">';
+  d.executives.slice(0,6).forEach(function(ex){
+    out += '<div><span class="k">'+esc(ex.title)+'</span>'+esc(ex.name||'-')+'</div>';
+  });
+  out += '</div>';
+  out += '<div class="op-exec-wide">';
+  d.executives.slice(6,8).forEach(function(ex){
+    out += '<div><span class="k">'+esc(ex.title)+'</span>'+esc(ex.name||'-')+'</div>';
   });
   out += '</div>';
   out += '<table><thead><tr><th>위원회</th><th>'+esc(d.columnTitles.col1)+'</th><th>'+esc(d.columnTitles.col2)+'</th><th>'+esc(d.columnTitles.col3)+'</th></tr></thead><tbody>';
