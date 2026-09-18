@@ -1402,7 +1402,12 @@ function updateOrgTitle(){
 
 function openOrgPanel(){
   document.getElementById('orgOverlay').classList.remove('hidden');
-  if(!orgLoaded){ loadOrgData(); } else { renderOrgBody(); }
+  if(!orgLoaded){
+    loadOrgData();
+  } else {
+    normalizeOrgData(orgState);
+    renderOrgBody();
+  }
 }
 function closeOrgPanel(){ document.getElementById('orgOverlay').classList.add('hidden'); }
 
