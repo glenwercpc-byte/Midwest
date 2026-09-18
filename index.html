@@ -390,11 +390,16 @@ body{
 .org-table tbody tr:nth-child(even) td{background:#FFFFFF;}
 .org-table tbody tr:nth-child(odd) td.org-committee-name{background:#E6D9B8;}
 .org-table tbody tr:nth-child(even) td.org-committee-name{background:#EFE9D8;}
-.org-cell{display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:260px;}
-.org-sublist{display:flex;flex-direction:column;gap:1px;}
-.org-person-row{display:flex;align-items:center;gap:2px;}
-.org-person-row input{flex:0 0 66%;width:66%;border:1px solid var(--edge);border-radius:5px;padding:2px 4px;font-size:12px;font-family:'Noto Sans KR',sans-serif;min-width:0;}
-.org-person-row input:focus{outline:none;border-color:var(--gold);}
+.org-cell{display:grid;grid-template-columns:1fr 1fr;gap:1px;min-width:260px;}
+.org-cell-6{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;}
+.org-sublist{display:flex;flex-direction:column;gap:0;}
+.org-person-row{display:flex;align-items:center;gap:1px;}
+.org-person-row input{
+  flex:0 0 85%;width:85%;border:1px solid transparent;background:transparent;
+  border-radius:4px;padding:2px 4px;font-size:12px;font-family:'Noto Sans KR',sans-serif;min-width:0;
+}
+.org-person-row input:focus{outline:none;border-color:var(--gold);background:#fff;}
+.org-person-row input:hover{background:var(--paper);}
 .org-person-del{background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;padding:1px 3px;flex:0 0 auto;}
 .org-person-del.org-hide{visibility:hidden;}
 .org-person-del:hover{color:var(--maroon);}
@@ -1481,7 +1486,10 @@ function buildOrgPrintView(){
   d.committees.forEach(function(comm){
     out += '<tr><td>'+formatCommitteeName(comm.name)+'</td>';
     if(MERGED_COMMITTEES[comm.name]){
-      var names = (comm.col1_left||[]).concat(comm.col1_right||[]);
+      var names = []
+        .concat(comm.col1_left||[]).concat(comm.col1_right||[])
+        .concat(comm.col2_left||[]).concat(comm.col2_right||[])
+        .concat(comm.col3_left||[]).concat(comm.col3_right||[]);
       out += '<td colspan="3">'+(names.length ? names.map(esc).join('<br>') : '-')+'</td>';
     } else {
       ['col1','col2','col3'].forEach(function(c){
@@ -1500,17 +1508,17 @@ function printOrgPanel(){
   buildOrgPrintView();
   document.body.classList.add('printing-org');
 
-  var landscapeStyle = document.createElement('style');
-  landscapeStyle.id = 'orgLandscapeStyle';
-  landscapeStyle.textContent = '@page{ size: landscape; margin: 0.4in; }';
-  document.head.appendChild(landscapeStyle);
+  var printPageStyle = document.createElement('style');
+  printPageStyle.id = 'orgPrintPageStyle';
+  printPageStyle.textContent = '@page{ size: portrait; margin: 0.4in; }';
+  document.head.appendChild(printPageStyle);
 
   window.print();
 }
 window.addEventListener('afterprint', function(){
   document.body.classList.remove('printing-org');
-  var landscapeStyle = document.getElementById('orgLandscapeStyle');
-  if(landscapeStyle) landscapeStyle.parentNode.removeChild(landscapeStyle);
+  var printPageStyle = document.getElementById('orgPrintPageStyle');
+  if(printPageStyle) printPageStyle.parentNode.removeChild(printPageStyle);
   var view = document.getElementById('orgPrintView');
   if(view){ view.innerHTML=''; }
 });
@@ -1548,17 +1556,19 @@ function renderOrgBody(){
   d.committees.forEach(function(comm, ci){
     out += '<tr><td class="org-committee-name">'+formatCommitteeName(comm.name)+'</td>';
     if(MERGED_COMMITTEES[comm.name]){
-      out += '<td colspan="3"><div class="org-cell">';
-      ['left','right'].forEach(function(side){
-        var field = 'col1_'+side;
-        var lp = JSON.stringify(['committees',ci,field]);
-        var list = paddedList(comm[field]);
-        out += '<div class="org-sublist" data-listpath="'+esc(lp)+'">';
-        list.forEach(function(name, ni){
-          var isEmpty = (name||'').trim()==='';
-          out += '<div class="org-person-row"><input class="org-field org-person-field" data-path="'+esc(JSON.stringify(['committees',ci,field,ni]))+'" value="'+esc(name)+'" placeholder="입력"><button type="button" class="org-person-del'+(isEmpty?'':' org-hide')+'" data-listpath="'+esc(lp)+'" data-idx="'+ni+'">×</button></div>';
+      out += '<td colspan="3"><div class="org-cell-6">';
+      ['col1','col2','col3'].forEach(function(c){
+        ['left','right'].forEach(function(side){
+          var field = c+'_'+side;
+          var lp = JSON.stringify(['committees',ci,field]);
+          var list = paddedList(comm[field]);
+          out += '<div class="org-sublist" data-listpath="'+esc(lp)+'">';
+          list.forEach(function(name, ni){
+            var isEmpty = (name||'').trim()==='';
+            out += '<div class="org-person-row"><input class="org-field org-person-field" data-path="'+esc(JSON.stringify(['committees',ci,field,ni]))+'" value="'+esc(name)+'" placeholder="입력"><button type="button" class="org-person-del'+(isEmpty?'':' org-hide')+'" data-listpath="'+esc(lp)+'" data-idx="'+ni+'">×</button></div>';
+          });
+          out += '</div>';
         });
-        out += '</div>';
       });
       out += '</div></td>';
     } else {
