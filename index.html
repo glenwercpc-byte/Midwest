@@ -415,6 +415,7 @@ body{
 .org-print-view .op-exec-row span.k{font-weight:700;margin-right:3px;}
 .org-print-view table{width:100%;border-collapse:collapse;}
 .org-print-view th,.org-print-view td{border:1px solid #999;padding:3px 5px;font-size:9.5px;vertical-align:top;line-height:1.4;text-align:left;}
+.org-print-view .op-merged-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px 8px;}
 .org-print-view th{background:#eee;font-family:'Noto Serif KR',serif;font-weight:700;text-align:center;}
 .org-print-view td:first-child{font-weight:700;white-space:nowrap;text-align:center;background:#f5f5f5;}
 
@@ -454,6 +455,7 @@ body{
 }
 .page-num{display:none;}
 @media print{
+  body,#app{min-height:0!important;}
   .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#orgOverlay,#newOrgOverlay,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
@@ -1490,7 +1492,10 @@ function buildOrgPrintView(){
         .concat(comm.col1_left||[]).concat(comm.col1_right||[])
         .concat(comm.col2_left||[]).concat(comm.col2_right||[])
         .concat(comm.col3_left||[]).concat(comm.col3_right||[]);
-      out += '<td colspan="3">'+(names.length ? names.map(esc).join('<br>') : '-')+'</td>';
+      var grid = names.length
+        ? '<div class="op-merged-grid">'+names.map(function(n){ return '<div>'+esc(n)+'</div>'; }).join('')+'</div>'
+        : '-';
+      out += '<td colspan="3">'+grid+'</td>';
     } else {
       ['col1','col2','col3'].forEach(function(c){
         var names = (comm[c+'_left']||[]).concat(comm[c+'_right']||[]);
@@ -1618,31 +1623,61 @@ document.getElementById('orgOverlay').addEventListener('input', function(e){
     delBtn.classList.toggle('org-hide', !isEmpty);
   }
 });
+function findSublistEl(path){
+  var target = JSON.stringify(path);
+  var found = null;
+  document.querySelectorAll('.org-sublist').forEach(function(s){
+    if(found) return;
+    try{ if(JSON.stringify(JSON.parse(s.dataset.listpath))===target){ found = s; } }catch(err){}
+  });
+  return found;
+}
+function focusLastOf(path){
+  var s = findSublistEl(path);
+  if(s){
+    var ins = s.querySelectorAll('.org-person-field');
+    if(ins.length) ins[ins.length-1].focus();
+  }
+}
+
 document.getElementById('orgOverlay').addEventListener('keydown', function(e){
   if(e.key!=='Enter' || !e.target.classList.contains('org-person-field')) return;
   e.preventDefault();
   var sub = e.target.closest('.org-sublist');
   var inputs = Array.from(sub.querySelectorAll('.org-person-field'));
   var myIndex = inputs.indexOf(e.target);
-  var isLast = myIndex === inputs.length - 1;
-  if(!isLast){
+  if(myIndex < inputs.length - 1){
     inputs[myIndex+1].focus();
     return;
   }
   var lp = JSON.parse(sub.dataset.listpath);
-  var arr = getOrgPath(lp);
-  arr.push(''); arr.push('');
-  markOrgDirty();
-  renderOrgBody();
-  var target = JSON.stringify(lp);
-  var newSub = null;
-  document.querySelectorAll('.org-sublist').forEach(function(s){
-    if(newSub) return;
-    try{ if(JSON.stringify(JSON.parse(s.dataset.listpath))===target){ newSub = s; } }catch(err){}
-  });
-  if(newSub){
-    var newInputs = newSub.querySelectorAll('.org-person-field');
-    if(newInputs.length) newInputs[newInputs.length-2].focus();
+  var field = lp[lp.length-1];
+  var isLeft = /_left$/.test(field);
+  var pairField = isLeft ? field.replace(/_left$/,'_right') : field.replace(/_right$/,'_left');
+  var pairPath = lp.slice(0,-1).concat([pairField]);
+
+  if(!isLeft){
+    // 오른쪽(두번째) 칸의 마지막: 항상 다음 줄 왼쪽에 새 칸 하나만
+    getOrgPath(pairPath).push('');
+    markOrgDirty(); renderOrgBody();
+    focusLastOf(pairPath);
+    return;
+  }
+
+  // 왼쪽(첫번째) 칸의 마지막: 같은 줄 오른쪽이 비어있으면 그쪽으로, 없으면 오른쪽에 새로 하나,
+  // 오른쪽이 이미 채워져 있으면 왼쪽에 새 줄 하나
+  var pairSub = findSublistEl(pairPath);
+  var pairInputs = pairSub ? pairSub.querySelectorAll('.org-person-field') : [];
+  if(pairInputs.length > myIndex && pairInputs[myIndex].value.trim()===''){
+    pairInputs[myIndex].focus();
+  } else if(pairInputs.length <= myIndex){
+    getOrgPath(pairPath).push('');
+    markOrgDirty(); renderOrgBody();
+    focusLastOf(pairPath);
+  } else {
+    getOrgPath(lp).push('');
+    markOrgDirty(); renderOrgBody();
+    focusLastOf(lp);
   }
 });
 document.getElementById('newOrgOverlay').addEventListener('click', function(e){ if(e.target.id==='newOrgOverlay') closeNewOrgDialog(); });
