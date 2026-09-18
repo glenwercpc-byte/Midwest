@@ -389,7 +389,7 @@ body{
 .org-cell{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:300px;}
 .org-sublist{display:flex;flex-direction:column;gap:4px;}
 .org-person-row{display:flex;align-items:center;gap:4px;}
-.org-person-row input{flex:1;border:1px solid var(--edge);border-radius:5px;padding:3px 5px;font-size:12px;font-family:'Noto Sans KR',sans-serif;min-width:0;}
+.org-person-row input{flex:0 0 66%;width:66%;border:1px solid var(--edge);border-radius:5px;padding:3px 5px;font-size:12px;font-family:'Noto Sans KR',sans-serif;min-width:0;}
 .org-person-row input:focus{outline:none;border-color:var(--gold);}
 .org-person-del{background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;padding:2px 4px;flex:0 0 auto;}
 .org-person-del.org-hide{visibility:hidden;}
@@ -770,6 +770,14 @@ function getPath(obj, path){
 function esc(s){
   return (s==null?'':String(s))
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/** "교육 및 목사후보생 (CPM)" 처럼 끝에 괄호 약칭이 붙은 위원회명을
+    "교육 및 목사후보생<br>(CPM)" 형태로, 약칭을 아래 줄에 표시합니다. */
+function formatCommitteeName(name){
+  var m = (name||'').match(/^(.*?)\s*(\([^)]*\))\s*$/);
+  if(m && m[1]){ return esc(m[1]) + '<br>' + esc(m[2]); }
+  return esc(name);
 }
 
 function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#e2b04a'; }
@@ -1466,7 +1474,7 @@ function buildOrgPrintView(){
   out += '</div>';
   out += '<table><thead><tr><th>위원회</th><th>'+esc(d.columnTitles.col1)+'</th><th>'+esc(d.columnTitles.col2)+'</th><th>'+esc(d.columnTitles.col3)+'</th></tr></thead><tbody>';
   d.committees.forEach(function(comm){
-    out += '<tr><td>'+esc(comm.name)+'</td>';
+    out += '<tr><td>'+formatCommitteeName(comm.name)+'</td>';
     ['col1','col2','col3'].forEach(function(c){
       var names = (comm[c+'_left']||[]).concat(comm[c+'_right']||[]);
       out += '<td>'+(names.length ? names.map(esc).join(', ') : '-')+'</td>';
@@ -1500,7 +1508,7 @@ window.addEventListener('afterprint', function(){
 /* 목록을 최소 2칸까지 빈 칸으로 채워서 보여줍니다 (실제 데이터에는 저장 시점에만 반영). */
 function paddedList(arr){
   var a = (arr||[]).slice();
-  while(a.length < 2) a.push('');
+  while(a.length < 1) a.push('');
   return a;
 }
 
@@ -1526,7 +1534,7 @@ function renderOrgBody(){
   });
   out += '</tr></thead><tbody>';
   d.committees.forEach(function(comm, ci){
-    out += '<tr><td class="org-committee-name">'+esc(comm.name)+'</td>';
+    out += '<tr><td class="org-committee-name">'+formatCommitteeName(comm.name)+'</td>';
     ['col1','col2','col3'].forEach(function(c){
       out += '<td><div class="org-cell">';
       ['left','right'].forEach(function(side){
