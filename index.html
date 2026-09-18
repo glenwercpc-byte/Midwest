@@ -1570,7 +1570,6 @@ window.addEventListener('afterprint', function(){
 /* 목록을 최소 2칸까지 빈 칸으로 채워서 보여줍니다 (실제 데이터에는 저장 시점에만 반영). */
 function paddedList(arr){
   var a = (arr||[]).slice();
-  while(a.length && (a[a.length-1]||'').trim()===''){ a.pop(); }
   while(a.length < 1) a.push('');
   return a;
 }
