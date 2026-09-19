@@ -1602,11 +1602,13 @@ function renderOrgBody(){
     out += '<tr><td class="org-committee-name">'+formatCommitteeName(comm.name)+'</td>';
     if(MERGED_COMMITTEES[comm.name]){
       out += '<td colspan="3"><div class="org-cell-6">';
+      var mergedIsFirst = true;
       ['col1','col2','col3'].forEach(function(c){
         ['left','right'].forEach(function(side){
           var field = c+'_'+side;
           var lp = JSON.stringify(['committees',ci,field]);
-          var list = paddedList(comm[field]);
+          var list = mergedIsFirst ? paddedList(comm[field]) : (comm[field]||[]).slice();
+          mergedIsFirst = false;
           out += '<div class="org-sublist" data-listpath="'+esc(lp)+'">';
           list.forEach(function(name, ni){
             var isEmpty = (name||'').trim()==='';
@@ -1682,15 +1684,12 @@ function focusLastOf(path){
 
 document.getElementById('orgOverlay').addEventListener('keydown', function(e){
   if(e.key!=='Enter' || !e.target.classList.contains('org-person-field')) return;
-  if(e.target.value.trim()===''){ e.preventDefault(); return; } // 데이터가 있는 칸에서만 Enter가 동작합니다
   e.preventDefault();
+  if(e.target.value.trim()==='') return; // 데이터가 있는 칸에서만 Enter가 동작합니다
   var sub = e.target.closest('.org-sublist');
   var inputs = Array.from(sub.querySelectorAll('.org-person-field'));
   var myIndex = inputs.indexOf(e.target);
-  if(myIndex < inputs.length - 1){
-    inputs[myIndex+1].focus();
-    return;
-  }
+  if(myIndex < inputs.length - 1) return; // 그 목록의 마지막 칸이 아니면 아무 동작도 하지 않습니다
 
   // 이 칸이 속한 행(row)의 전체 칸 목록을 가져옵니다.
   // 일반 위원회는 2칸(좌/우), 상임 사법 전권·준회원(MAL)·총회,해외는 6칸입니다.
