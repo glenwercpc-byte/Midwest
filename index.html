@@ -1697,23 +1697,24 @@ document.getElementById('orgOverlay').addEventListener('keydown', function(e){
   var rowSublists = cellContainer ? Array.from(cellContainer.children).filter(function(el){ return el.classList.contains('org-sublist'); }) : [sub];
   var subIndex = rowSublists.indexOf(sub);
 
-  if(subIndex < rowSublists.length - 1){
-    // 오른쪽 칸을 확인: 비어있으면(또는 없으면) 그쪽에 만들고, 이미 차 있으면 줄바꿈으로 넘어갑니다.
-    var nextSub = rowSublists[subIndex+1];
-    var nextPath = JSON.parse(nextSub.dataset.listpath);
-    var nextInputs = nextSub.querySelectorAll('.org-person-field');
-    if(nextInputs.length > myIndex && nextInputs[myIndex].value.trim()===''){
-      nextInputs[myIndex].focus();
+  // 오른쪽으로 남은 칸들을 순서대로 확인합니다 — 비어있거나 없는 첫번째 칸을 씁니다.
+  for(var j = subIndex+1; j < rowSublists.length; j++){
+    var candSub = rowSublists[j];
+    var candPath = JSON.parse(candSub.dataset.listpath);
+    var candInputs = candSub.querySelectorAll('.org-person-field');
+    if(candInputs.length > myIndex && candInputs[myIndex].value.trim()===''){
+      candInputs[myIndex].focus();
       return;
-    } else if(nextInputs.length <= myIndex){
-      getOrgPath(nextPath).push('');
+    } else if(candInputs.length <= myIndex){
+      getOrgPath(candPath).push('');
       markOrgDirty(); renderOrgBody();
-      focusLastOf(nextPath);
+      focusLastOf(candPath);
       return;
     }
+    // 이 칸은 이미 데이터가 차 있음 — 다음 칸을 계속 확인합니다.
   }
 
-  // 마지막 칸이거나 오른쪽이 이미 다 차 있으면: 다음 줄 첫번째 칸에 새로 만듭니다.
+  // 오른쪽에 남은 칸이 전부 다 차 있으면: 다음 줄 첫번째 칸에 새로 만듭니다.
   var firstPath = JSON.parse(rowSublists[0].dataset.listpath);
   getOrgPath(firstPath).push('');
   markOrgDirty(); renderOrgBody();
