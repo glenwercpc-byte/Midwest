@@ -1689,13 +1689,22 @@ document.getElementById('orgOverlay').addEventListener('keydown', function(e){
   var sub = e.target.closest('.org-sublist');
   var inputs = Array.from(sub.querySelectorAll('.org-person-field'));
   var myIndex = inputs.indexOf(e.target);
-  if(myIndex < inputs.length - 1) return; // 그 목록의 마지막 칸이 아니면 아무 동작도 하지 않습니다
+  if(myIndex < inputs.length - 1) return; // 그 목록 안에서 마지막 칸이 아니면 동작하지 않습니다
 
   // 이 칸이 속한 행(row)의 전체 칸 목록을 가져옵니다.
   // 일반 위원회는 2칸(좌/우), 상임 사법 전권·준회원(MAL)·총회,해외는 6칸입니다.
   var cellContainer = sub.closest('.org-cell, .org-cell-6');
   var rowSublists = cellContainer ? Array.from(cellContainer.children).filter(function(el){ return el.classList.contains('org-sublist'); }) : [sub];
   var subIndex = rowSublists.indexOf(sub);
+
+  // 같은 행의 다른 칸(좌/우, 또는 6칸) 중 이 칸보다 더 아래까지 이름이 있는 칸이 있으면
+  // 이 칸은 "진짜 마지막"이 아니므로 아무 동작도 하지 않습니다.
+  var maxLen = 0;
+  rowSublists.forEach(function(s){
+    var n = s.querySelectorAll('.org-person-field').length;
+    if(n > maxLen) maxLen = n;
+  });
+  if(inputs.length < maxLen) return;
 
   // 오른쪽으로 남은 칸들을 순서대로 확인합니다 — 비어있거나 없는 첫번째 칸을 씁니다.
   for(var j = subIndex+1; j < rowSublists.length; j++){
