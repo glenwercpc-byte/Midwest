@@ -1214,15 +1214,42 @@ function postToScript(body){
   });
 }
 
+var meetingLoadedUpdatedAt = null; // 마지막으로 불러오거나 저장한 시점의 서버 저장 시각
+
 function saveMeeting(){
   var m = state.meeting;
   if(!m.ordinal){ alert('회차(제 몇 차)를 먼저 입력해주세요.'); return; }
   if(!isConfigured()) return;
   m.id = String(m.ordinal);
   var badge = document.getElementById('saveBadge');
-  badge.textContent='저장 중…'; badge.style.color='#B9C2D6';
+  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)';
+  jsonp({action:'checkMeetingVersion', id:m.id}).then(function(res){
+    var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
+    if(serverUpdatedAt && serverUpdatedAt !== meetingLoadedUpdatedAt){
+      var proceed = confirm(
+        '다른 사람이 이 회의안(제 '+m.ordinal+'차)을 방금 먼저 저장한 것 같습니다.\n'+
+        '(마지막 저장 시각: '+serverUpdatedAt+')\n\n'+
+        '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
+        '"취소"를 누르시면 저장하지 않습니다 — 보관함에서 최신 내용을 다시 불러오신 뒤 이어서 수정하시길 권장합니다.'
+      );
+      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; return; }
+    }
+    doSaveMeeting_();
+  }).catch(function(){
+    // 확인 요청 자체가 실패해도(네트워크 문제 등) 저장은 계속 진행합니다.
+    doSaveMeeting_();
+  });
+}
+
+function doSaveMeeting_(){
+  var m = state.meeting;
+  var badge = document.getElementById('saveBadge');
+  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)';
   postToScript({action:'save', meeting:m}).then(function(){
     markClean();
+    return jsonp({action:'checkMeetingVersion', id:m.id});
+  }).then(function(res){
+    if(res && res.ok) meetingLoadedUpdatedAt = res.updatedAt;
   }).catch(function(err){
     console.error(err);
     alert('저장 중 오류가 발생했습니다. 네트워크 설정에서 script.google.com 접속이 허용되어 있는지 확인해주세요.');
@@ -1235,6 +1262,7 @@ function newMeeting(){
   var n = parseFloat(state.meeting.ordinal);
   if(!isNaN(n)) m.ordinal = String(n+1);
   state.meeting = m;
+  meetingLoadedUpdatedAt = null; // 새 문서 — 아직 서버에 저장된 버전이 없습니다
   currentAnchor='cover';
   editMode = true;
   markDirty();
@@ -1350,6 +1378,9 @@ function loadMeeting(id){
     } else {
       clearSearchMatches();
     }
+    jsonp({action:'checkMeetingVersion', id:id}).then(function(vres){
+      if(vres && vres.ok) meetingLoadedUpdatedAt = vres.updatedAt;
+    }).catch(function(){});
   }).catch(function(){ alert('불러오기 중 오류가 발생했습니다.'); });
 }
 
@@ -1382,6 +1413,7 @@ var orgInitialData = {
 
 var orgState = null;
 var orgLoaded = false;
+var orgLoadedUpdatedAt = null; // 마지막으로 불러오거나 저장한 시점의 서버 저장 시각
 
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 function getOrgPath(path){
@@ -1449,6 +1481,9 @@ function loadOrgData(){
       orgLoaded = true;
       markOrgClean();
       renderOrgBody();
+      jsonp({action:'checkOrgVersion', year: orgState.year}).then(function(vres){
+        if(vres && vres.ok) orgLoadedUpdatedAt = vres.updatedAt;
+      }).catch(function(){});
     } else {
       body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
     }
@@ -1471,10 +1506,33 @@ function pruneEmptyNames(state){
 function saveOrgData(){
   if(!orgState || !isConfigured()) return;
   var badge = document.getElementById('orgSaveBadge');
+  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)';
+  jsonp({action:'checkOrgVersion', year: orgState.year}).then(function(res){
+    var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
+    if(serverUpdatedAt && serverUpdatedAt !== orgLoadedUpdatedAt){
+      var proceed = confirm(
+        '다른 사람이 '+orgState.year+'년 조직표를 방금 먼저 저장한 것 같습니다.\n'+
+        '(마지막 저장 시각: '+serverUpdatedAt+')\n\n'+
+        '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
+        '"취소"를 누르시면 저장하지 않습니다 — 패널을 닫았다 다시 열어 최신 내용을 확인하시길 권장합니다.'
+      );
+      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; return; }
+    }
+    doSaveOrgData_();
+  }).catch(function(){
+    doSaveOrgData_();
+  });
+}
+
+function doSaveOrgData_(){
+  var badge = document.getElementById('orgSaveBadge');
   badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)';
   var payload = pruneEmptyNames(orgState);
   postToScript({action:'saveOrg', year: orgState.year, org: payload}).then(function(){
     markOrgClean();
+    return jsonp({action:'checkOrgVersion', year: orgState.year});
+  }).then(function(res){
+    if(res && res.ok) orgLoadedUpdatedAt = res.updatedAt;
   }).catch(function(err){
     console.error(err);
     alert('저장 중 오류가 발생했습니다.');
@@ -1503,6 +1561,7 @@ function confirmNewOrg(mode){
   orgState.year = year;
   normalizeOrgData(orgState);
   orgLoaded = true;
+  orgLoadedUpdatedAt = null; // 새로 만드는 조직 — 이 연도의 서버 버전을 아직 모릅니다
   closeNewOrgDialog();
   renderOrgBody();
   markOrgDirty();
