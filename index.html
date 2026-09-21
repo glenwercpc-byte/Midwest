@@ -1693,23 +1693,26 @@ document.getElementById('orgOverlay').addEventListener('keydown', function(e){
 
   // 이 칸이 속한 행(row)의 전체 칸 목록을 가져옵니다.
   // 일반 위원회는 2칸(좌/우), 상임 사법 전권·준회원(MAL)·총회,해외는 6칸입니다.
-  var rowContainer = sub.closest('tr');
-  var rowSublists = rowContainer ? Array.from(rowContainer.querySelectorAll('.org-sublist')) : [sub];
+  // 상임 사법 전권·준회원(MAL)·총회,해외(org-cell-6)는 6칸 전체가 한 줄이고,
+  // 그 외 위원회(org-cell)는 각 년조(2026/2027/2028) 안에서만 좌/우가 한 줄입니다.
+  var cellContainer = sub.closest('.org-cell-6') || sub.closest('.org-cell');
+  var rowSublists = cellContainer ? Array.from(cellContainer.children).filter(function(el){ return el.classList.contains('org-sublist'); }) : [sub];
   var subIndex = rowSublists.indexOf(sub);
 
-  // 같은 행의 다른 칸(좌/우, 또는 6칸) 중 이 칸보다 더 아래까지 이름이 있는 칸이 있으면
-  // 이 칸은 "진짜 마지막"이 아니므로 아무 동작도 하지 않습니다.
-  // 이 칸보다 뒤(오른쪽/다음 년조)에 있는 칸들 중 실제 이름이 남아있으면,
-  // 이 칸은 "그 줄의 진짜 마지막"이 아니므로 아무 동작도 하지 않습니다.
-  var allLaterEmpty = true;
+  // 이 칸이 "그 줄의 진짜 마지막"인지 확인합니다.
+  // (1) 다른 칸이 이 칸보다 더 아래까지 이름이 있으면 진짜 마지막이 아닙니다.
+  // (2) 같은 깊이(동률)인 칸이 이 칸보다 뒤(오른쪽/다음 년조)에 있으면, 그 칸이 진짜 마지막입니다.
+  var myDepth = inputs.length;
+  var maxDepth = 0;
+  rowSublists.forEach(function(s){
+    var n = s.querySelectorAll('.org-person-field').length;
+    if(n > maxDepth) maxDepth = n;
+  });
+  if(myDepth < maxDepth) return;
   for(var k = subIndex+1; k < rowSublists.length; k++){
-    var kInputs = rowSublists[k].querySelectorAll('.org-person-field');
-    for(var m = 0; m < kInputs.length; m++){
-      if(kInputs[m].value.trim()!==''){ allLaterEmpty = false; break; }
-    }
-    if(!allLaterEmpty) break;
+    var kLen = rowSublists[k].querySelectorAll('.org-person-field').length;
+    if(kLen === maxDepth) return;
   }
-  if(!allLaterEmpty) return;
 
   // 오른쪽으로 남은 칸들을 순서대로 확인합니다 — 비어있거나 없는 첫번째 칸을 씁니다.
   for(var j = subIndex+1; j < rowSublists.length; j++){
