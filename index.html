@@ -137,7 +137,11 @@ body{
 .doc-header .org{font-size:11.5px;color:var(--sub);text-align:center;letter-spacing:.03em;}
 .doc-header h2{
   font-family:'Noto Serif KR',serif;font-size:19px;text-align:center;
-  margin:10px 0 14px;color:var(--ink);
+  margin:10px 0 6px;color:var(--ink);
+}
+.kind-label{
+  text-align:center;font-size:12px;font-weight:700;color:var(--maroon);
+  margin:0 0 12px;letter-spacing:.04em;
 }
 .meta-row{display:flex;gap:24px;justify-content:center;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
 .meta-row b{color:var(--ink);}
@@ -268,12 +272,13 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#newOrgOverlay{
+#modalOverlay,#newOrgOverlay,#newMeetingOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#newOrgOverlay.hidden{display:none;}
+#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden{display:none;}
 #newOrgOverlay{z-index:130;}
+#newMeetingOverlay{z-index:130;}
 .dlg-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -459,7 +464,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#orgOverlay,#newOrgOverlay,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -526,7 +531,7 @@ body{
       <button class="tbtn" onclick="saveMeeting()">저장</button>
       <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
       <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
-      <button class="tbtn primary" onclick="newMeeting()">새 회의</button>
+      <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
     </div>
   </div>
 
@@ -604,6 +609,22 @@ body{
   </div>
 </div>
 
+<div id="newMeetingOverlay" class="hidden">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-head">
+      <h3>새 회의 종류 선택</h3>
+      <button class="modal-close" onclick="closeNewMeetingDialog()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="dlg-note">이번 회의의 형식을 골라주세요.</p>
+      <div class="dlg-actions">
+        <button type="button" onclick="newMeeting('installation')">중서부 한미노회 회의안<br><small style="font-weight:400;">(노회 임원 이·취임식 포함)</small></button>
+        <button type="button" onclick="newMeeting('regular')">중서부 한미노회 회의안<br><small style="font-weight:400;">(정규 모임)</small></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================= 백엔드 설정 (Google Apps Script) =============================
    아래 URL을 Apps Script 프로젝트를 웹앱으로 배포한 뒤 받는 주소로 바꿔주세요. */
@@ -627,7 +648,7 @@ function makeSection(num, title, kind, extra){
   return sec;
 }
 
-function defaultSkeleton(){
+function defaultSkeletonInstallation(){
   return {
     s1: makeSection('1','개회 (Call to Order)','static'),
     s2: makeSection('2','회원점명 & 방문자 소개와 인사','lines',{lines:[]}),
@@ -660,9 +681,44 @@ function defaultSkeleton(){
   };
 }
 
-function blankMeeting(){
+/** 노회 임원 이·취임식 없이 바로 회순으로 들어가는 "정규 모임" 형식 (제106차 형식 기준). 11개 항목. */
+function defaultSkeletonRegular(){
+  return {
+    s1: makeSection('1','개회 (Call to Order)','static'),
+    s2: makeSection('2','회원 점명 (Roll Call) & 방문자 소개와 인사','lines',{lines:[]}),
+    s3: makeSection('3','개회 정족수 선언','lines',{lines:[]}),
+    s4: makeSection('4','회순 채택 (Adoption of the Docket)','toc'),
+    s5: makeSection('5','전 회의록 채택','lines',{lines:[{text:'전 회의록 채택',tag:'motion',hasAttachment:true,attachmentContent:''}]}),
+    s6: makeSection('6','임원 보고 (Presbytery Officer Report)','sub',{subs:[
+        {key:'A',label:'노회장 보고 (Moderator Report)',lines:[]},
+        {key:'B',label:'사무총장 보고 (Executive Presbyter Report)',lines:[]},
+        {key:'C',label:'정서기 보고 (Stated Clerk Report)',lines:[]},
+        {key:'D',label:'재정 보고 (Treasurer Report)',lines:[]},
+        {key:'E',label:'임원회 보고 및 결의사항 (Presbytery Officers Report & Agendas)',lines:[]}
+      ]}),
+    s7: makeSection('7','각 위원회 보고 및 동의안 (Report and Motion of Committees)','sub',{subs:[
+        {key:'A',label:'공천 위원회 (Nominating Committee)',lines:[]},
+        {key:'B',label:'교육 및 목사 후보생 위원회 (Education and Preparation for Ministry Committee)',lines:[]},
+        {key:'C',label:'목회 위원회 (Committee on Ministry)',lines:[]},
+        {key:'D',label:'선교 및 교회발전 위원회 (Mission and Church Development Committee)',lines:[]},
+        {key:'E',label:'대표 및 정책기록위원회 (Committee on Representation and Policy and Record)',lines:[]},
+        {key:'F',label:'법인 이사회 (Board of Trustee)',lines:[]},
+        {key:'G',label:'상임사법전권위원회 (Permanent Judicial Commission)',lines:[]},
+        {key:'H',label:'한마음교회 위임위원회',lines:[]},
+        {key:'I',label:'로렌스장로교회 행정위원회',lines:[]}
+      ]}),
+    s8: makeSection('8','다음 노회 일시 및 장소','next',{data:{ordinal:'',dateDisplay:'',venue:'',address:''}}),
+    s9: makeSection('9','광고 (Announcements)','lines',{lines:[]}),
+    s10: makeSection('10','폐회 기도 (Closing Prayer)','lines',{lines:[{text:''}]}),
+    s11: makeSection('11','폐회 (Adjourn)','static')
+  };
+}
+
+function blankMeeting(kind){
+  kind = kind === 'regular' ? 'regular' : 'installation';
   return {
     id: '',
+    kind: kind,
     ordinal: '',
     dateDisplay: '',
     timeDisplay: '오후 7 시',
@@ -672,10 +728,10 @@ function blankMeeting(){
     hostPastorLine: '',
     hostAddress: '',
     orgAddress: '8257 Harrison Street, Niles, IL 60714',
-    worship: {songLeader:'',emcee:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
+    worship: {songLeader:'',emcee:'',accompanist:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
     installation: {emcee:'',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'},
     meetingChair: '',
-    sections: defaultSkeleton()
+    sections: kind === 'regular' ? defaultSkeletonRegular() : defaultSkeletonInstallation()
   };
 }
 
@@ -891,9 +947,18 @@ function renderLinesBlock(pathArr, lines){
   return out;
 }
 
+/** 섹션 순서를 하드코딩하지 않고, 각 섹션의 num 값으로 정렬합니다.
+    (이취임식형=12개 항목, 정규모임형=11개 항목 — 둘 다 이 함수로 처리됩니다) */
+function sectionOrder(){
+  var sections = state.meeting.sections;
+  return Object.keys(sections).sort(function(a,b){
+    return parseFloat(sections[a].num) - parseFloat(sections[b].num);
+  });
+}
+
 function tocRows(editable){
   var s = state.meeting.sections;
-  var order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+  var order = sectionOrder();
   var out = '';
   order.forEach(function(k){
     var sec = s[k];
@@ -929,9 +994,10 @@ function renderSection(k){
   out += renderSectionTitle(k, sec);
 
   if(sec.kind==='static'){
-    if(k==='s1'){
+    var ord = sectionOrder();
+    if(k===ord[0]){
       out += '<div style="font-size:13px;color:var(--sub);">사회: '+esc(state.meeting.meetingChair||'—')+'</div>';
-    } else if(k==='s12'){
+    } else if(k===ord[ord.length-1]){
       out += '<div style="font-size:13px;color:var(--sub);">제 '+esc(state.meeting.ordinal||'—')+'차 정기노회를 폐회합니다.</div>';
     }
   } else if(sec.kind==='lines'){
@@ -962,10 +1028,10 @@ function renderSection(k){
   } else if(sec.kind==='next'){
     var d = sec.data;
     out += '<div class="next-grid">';
-    out += '<div class="k">다음 회차</div><div>제 '+inputSpan(['meeting','sections','s9','data','ordinal'], d.ordinal)+'</div>';
-    out += '<div class="k">일시</div><div>'+inputSpan(['meeting','sections','s9','data','dateDisplay'], d.dateDisplay)+'</div>';
-    out += '<div class="k">장소</div><div>'+inputSpan(['meeting','sections','s9','data','venue'], d.venue)+'</div>';
-    out += '<div class="k">주소</div><div>'+inputSpan(['meeting','sections','s9','data','address'], d.address)+'</div>';
+    out += '<div class="k">다음 회차</div><div>제 '+inputSpan(['meeting','sections',k,'data','ordinal'], d.ordinal)+'</div>';
+    out += '<div class="k">일시</div><div>'+inputSpan(['meeting','sections',k,'data','dateDisplay'], d.dateDisplay)+'</div>';
+    out += '<div class="k">장소</div><div>'+inputSpan(['meeting','sections',k,'data','venue'], d.venue)+'</div>';
+    out += '<div class="k">주소</div><div>'+inputSpan(['meeting','sections',k,'data','address'], d.address)+'</div>';
     out += '</div>';
   }
   out += '</div>';
@@ -1019,10 +1085,12 @@ function renderCover(){
 
 function renderPage2Header(){
   var m = state.meeting;
+  var isRegular = m.kind === 'regular';
   var out = '<div class="page" id="page-header" data-anchor="header">';
   out += '<div class="doc-header">';
   out += '<div class="org">중서부 한미노회 · '+(editMode ? '<input class="org-addr-input js-field"'+fieldAttr(['meeting','orgAddress'])+' value="'+esc(m.orgAddress)+'">' : esc(m.orgAddress))+'</div>';
   out += '<h2>제 '+esc(m.ordinal||'—')+' 차 중서부 한미노회 정기노회 회의안 (Docket)</h2>';
+  out += '<div class="kind-label">'+(isRegular ? '정규 모임' : '노회 임원 이·취임식')+'</div>';
   out += '<div class="meta-row"><span><b>일시</b> : '+esc(m.dateDisplay||'—')+' '+esc(m.timeDisplay||'')+'</span><span><b>장소</b> : ';
   out += editMode ? esc(m.hostChurchKo)+' <input class="venue-note-input js-field"'+fieldAttr(['meeting','venueNote'])+' value="'+esc(m.venueNote)+'" placeholder="(예: 시카고노회 소속)">' : esc(m.hostChurchKo+' '+(m.venueNote||''));
   out += '</span></div></div>';
@@ -1030,6 +1098,7 @@ function renderPage2Header(){
   out += '<div class="roman-block"><h4>I. 개회예배</h4><div class="role-grid">';
   out += roleField('찬양인도', ['meeting','worship','songLeader'], m.worship.songLeader);
   out += roleField('사회', ['meeting','worship','emcee'], m.worship.emcee);
+  out += roleField('반주', ['meeting','worship','accompanist'], m.worship.accompanist);
   out += roleField('기도', ['meeting','worship','prayer'], m.worship.prayer);
   out += roleField('설교', ['meeting','worship','preacher'], m.worship.preacher);
   out += roleField('본문', ['meeting','worship','scripture'], m.worship.scripture);
@@ -1037,19 +1106,23 @@ function renderPage2Header(){
   out += roleField('축도', ['meeting','worship','benediction'], m.worship.benediction);
   out += '</div></div>';
 
-  out += '<div class="roman-block"><h4>II. 노회 임원 이·취임식</h4><div class="role-grid">';
-  out += roleField('사회', ['meeting','installation','emcee'], m.installation.emcee);
-  out += roleField('순서', ['meeting','installation','note'], m.installation.note);
-  out += '</div></div>';
+  if(isRegular){
+    out += '<div class="roman-block"><h4>II. 회 순 (Docket)</h4><div class="role-grid">';
+    out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
+    out += '</div></div>';
+  } else {
+    out += '<div class="roman-block"><h4>II. 노회 임원 이·취임식</h4><div class="role-grid">';
+    out += roleField('사회', ['meeting','installation','emcee'], m.installation.emcee);
+    out += roleField('순서', ['meeting','installation','note'], m.installation.note);
+    out += '</div></div>';
 
-  out += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
-  out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
-  out += '</div></div>';
+    out += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
+    out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
+    out += '</div></div>';
+  }
 
-  out += renderSection('s1');
-  out += renderSection('s2');
-  out += renderSection('s3');
-  out += renderSection('s4');
+  var order = sectionOrder();
+  order.slice(0,4).forEach(function(k){ out += renderSection(k); });
   out += '<div class="page-num">2 / 4</div>';
   out += '</div>';
   return out;
@@ -1058,12 +1131,18 @@ function renderPage2Header(){
 function render(){
   updateBrand();
   var out = renderCover() + renderPage2Header();
+  var order = sectionOrder();
+  var remaining = order.slice(4);
+  var half = Math.ceil(remaining.length/2);
+  var page3Sections = remaining.slice(0, half);
+  var page4Sections = remaining.slice(half);
+
   out += '<div class="page">';
-  ['s5','s6','s7','s8'].forEach(function(k){ out += renderSection(k); });
+  page3Sections.forEach(function(k){ out += renderSection(k); });
   out += '<div class="page-num">3 / 4</div>';
   out += '</div>';
   out += '<div class="page">';
-  ['s9','s10','s11','s12'].forEach(function(k){ out += renderSection(k); });
+  page4Sections.forEach(function(k){ out += renderSection(k); });
   out += '<div class="footer-note">중서부 한미노회 · Midwest Korean American Presbytery</div>';
   out += '<div class="page-num">4 / 4</div>';
   out += '</div>';
@@ -1076,7 +1155,10 @@ function render(){
 }
 
 function autoGrow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
-function updateBrand(){ document.getElementById('brandSub').textContent = '제 '+(state.meeting.ordinal||'—')+' 차 정기노회'; }
+function updateBrand(){
+  var kindLabel = state.meeting.kind === 'regular' ? '정규 모임' : '이·취임식';
+  document.getElementById('brandSub').textContent = '제 '+(state.meeting.ordinal||'—')+' 차 정기노회 · '+kindLabel;
+}
 
 /* ============================= 네비게이션 (회순 이동 + 뒤로가기) ============================= */
 function scrollToAnchor(anchor){
@@ -1175,9 +1257,10 @@ document.getElementById('tocList').addEventListener('click', onWorkspaceClick);
 document.getElementById('archiveList').addEventListener('click', onWorkspaceClick);
 document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
 document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
+document.getElementById('newMeetingOverlay').addEventListener('click', function(e){ if(e.target.id==='newMeetingOverlay') closeNewMeetingDialog(); });
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    closeModal(); closeArchive(); closeBooMenu();
+    closeModal(); closeArchive(); closeBooMenu(); closeNewMeetingDialog();
     var newOrgOpen = !document.getElementById('newOrgOverlay').classList.contains('hidden');
     if(newOrgOpen){ closeNewOrgDialog(); } else { closeOrgPanel(); }
   }
@@ -1256,9 +1339,14 @@ function doSaveMeeting_(){
   });
 }
 
-function newMeeting(){
+function openNewMeetingDialog(){
   if(dirty && !confirm('저장하지 않은 변경사항이 있습니다. 새 회의를 시작할까요?')) return;
-  var m = blankMeeting();
+  document.getElementById('newMeetingOverlay').classList.remove('hidden');
+}
+function closeNewMeetingDialog(){ document.getElementById('newMeetingOverlay').classList.add('hidden'); }
+
+function newMeeting(kind){
+  var m = blankMeeting(kind);
   var n = parseFloat(state.meeting.ordinal);
   if(!isNaN(n)) m.ordinal = String(n+1);
   state.meeting = m;
@@ -1266,6 +1354,7 @@ function newMeeting(){
   currentAnchor='cover';
   editMode = true;
   markDirty();
+  closeNewMeetingDialog();
   render();
   closeArchive();
 }
@@ -1368,6 +1457,7 @@ function loadMeeting(id){
   jsonp({action:'get', id:id}).then(function(res){
     if(!res || !res.ok || !res.meeting){ alert('불러오기에 실패했습니다.'); return; }
     state.meeting = res.meeting;
+    if(!state.meeting.kind) state.meeting.kind = 'installation';
     currentAnchor='cover';
     markClean();
     render();
@@ -1804,7 +1894,7 @@ function collectMatches(query){
   if(!q) return [];
   var matches = [];
   var sections = state.meeting.sections;
-  var order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+  var order = sectionOrder();
   order.forEach(function(k){
     var sec = sections[k];
     if(!sec) return;
