@@ -79,6 +79,8 @@ body{
 .tbtn.mode-locked{background:var(--maroon-soft);color:var(--maroon);border-color:var(--maroon-soft);}
 .tbtn.mode-edit{background:var(--gold-soft);color:#4a3a05;border-color:var(--gold-soft);}
 .savebadge{font-size:12px;color:#B9C2D6;white-space:nowrap;}
+@keyframes pulse-loading{0%,100%{opacity:1;}50%{opacity:.32;}}
+.loading-pulse{animation:pulse-loading 1.1s ease-in-out infinite;}
 
 /* ---------- Workspace ---------- */
 .workspace{display:flex;flex:1;min-height:0;}
@@ -615,7 +617,7 @@ body{
         <button class="modal-close" onclick="closeOrgPanel()">✕</button>
       </div>
     </div>
-    <div class="org-body" id="orgBody">불러오는 중…</div>
+    <div class="org-body" id="orgBody"><span class="loading-pulse">불러오는 중…</span></div>
     <div class="org-print-view" id="orgPrintView"></div>
   </div>
 </div>
@@ -898,8 +900,8 @@ function formatCommitteeName(name){
   return esc(name);
 }
 
-function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#e2b04a'; }
-function markClean(){ dirty=false; var b=document.getElementById('saveBadge'); b.textContent='저장됨'; b.style.color='#B9C2D6'; }
+function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#e2b04a'; b.classList.remove('loading-pulse'); }
+function markClean(){ dirty=false; var b=document.getElementById('saveBadge'); b.textContent='저장됨'; b.style.color='#B9C2D6'; b.classList.remove('loading-pulse'); }
 
 function setField(path, value){
   var parent = getPath(state, path.slice(0,-1));
@@ -1287,7 +1289,7 @@ function closeMeetingMenu(){ document.getElementById('meetingMenu').classList.ad
 
 function loadMeetingMenuList(){
   var menu = document.getElementById('meetingMenu');
-  menu.innerHTML = '<div class="meeting-menu-empty">불러오는 중…</div>';
+  menu.innerHTML = '<div class="meeting-menu-empty loading-pulse">불러오는 중…</div>';
   if(!isConfigured()){ menu.innerHTML = '<div class="meeting-menu-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'list'}).then(function(res){
     if(res && res.ok){
@@ -1441,7 +1443,7 @@ function saveMeeting(){
   if(!isConfigured()) return;
   m.id = String(m.ordinal);
   var badge = document.getElementById('saveBadge');
-  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)';
+  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
   jsonp({action:'checkMeetingVersion', id:m.id}).then(function(res){
     var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
     if(serverUpdatedAt && serverUpdatedAt !== meetingLoadedUpdatedAt){
@@ -1451,7 +1453,7 @@ function saveMeeting(){
         '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
         '"취소"를 누르시면 저장하지 않습니다 — 보관함에서 최신 내용을 다시 불러오신 뒤 이어서 수정하시길 권장합니다.'
       );
-      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; return; }
+      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse'); return; }
     }
     doSaveMeeting_();
   }).catch(function(){
@@ -1463,7 +1465,7 @@ function saveMeeting(){
 function doSaveMeeting_(){
   var m = state.meeting;
   var badge = document.getElementById('saveBadge');
-  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)';
+  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
   postToScript({action:'save', meeting:m}).then(function(){
     markClean();
     lastSavedMeetingSnapshot = deepClone(m);
@@ -1472,6 +1474,7 @@ function doSaveMeeting_(){
     if(res && res.ok) meetingLoadedUpdatedAt = res.updatedAt;
   }).catch(function(err){
     console.error(err);
+    badge.textContent='저장 실패'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse');
     alert('저장 중 오류가 발생했습니다. 네트워크 설정에서 script.google.com 접속이 허용되어 있는지 확인해주세요.');
   });
 }
@@ -1518,7 +1521,7 @@ function closeArchive(){ document.getElementById('archiveOverlay').classList.add
 
 function refreshArchiveIndex(){
   var list = document.getElementById('archiveList');
-  list.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
+  list.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
   if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'list'}).then(function(res){
     if(res && res.ok){
@@ -1564,7 +1567,7 @@ function doContentSearch(){
   if(!q){ refreshArchiveIndex(); return; }
   if(!isConfigured()) return;
   var list = document.getElementById('archiveList');
-  list.innerHTML = '<div class="archive-empty">내용 검색 중…</div>';
+  list.innerHTML = '<div class="archive-empty loading-pulse">내용 검색 중…</div>';
   jsonp({action:'search', q:q}).then(function(res){
     if(res && res.ok){
       archiveIndexCache = res.items;
@@ -1657,8 +1660,8 @@ function setOrgField(path, value){
   parent[path[path.length-1]] = value;
   markOrgDirty();
 }
-function markOrgDirty(){ var b=document.getElementById('orgSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; }
-function markOrgClean(){ var b=document.getElementById('orgSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; }
+function markOrgDirty(){ var b=document.getElementById('orgSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
+function markOrgClean(){ var b=document.getElementById('orgSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
 function updateOrgTitle(){
   document.getElementById('orgTitle').textContent = '🗂️ '+(orgState && orgState.year ? orgState.year : new Date().getFullYear())+'년 중서부 한미노회 위원회 조직';
 }
@@ -1701,7 +1704,7 @@ function normalizeOrgData(d){
 
 function loadOrgData(){
   var body = document.getElementById('orgBody');
-  body.innerHTML = '<div class="archive-empty">불러오는 중…</div>';
+  body.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
   if(!isConfigured()){ body.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'getOrg'}).then(function(res){
     if(res && res.ok){
@@ -1736,7 +1739,7 @@ function pruneEmptyNames(state){
 function saveOrgData(){
   if(!orgState || !isConfigured()) return;
   var badge = document.getElementById('orgSaveBadge');
-  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)';
+  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
   jsonp({action:'checkOrgVersion', year: orgState.year}).then(function(res){
     var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
     if(serverUpdatedAt && serverUpdatedAt !== orgLoadedUpdatedAt){
@@ -1746,7 +1749,7 @@ function saveOrgData(){
         '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
         '"취소"를 누르시면 저장하지 않습니다 — 패널을 닫았다 다시 열어 최신 내용을 확인하시길 권장합니다.'
       );
-      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; return; }
+      if(!proceed){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse'); return; }
     }
     doSaveOrgData_();
   }).catch(function(){
@@ -1756,7 +1759,7 @@ function saveOrgData(){
 
 function doSaveOrgData_(){
   var badge = document.getElementById('orgSaveBadge');
-  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)';
+  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
   var payload = pruneEmptyNames(orgState);
   postToScript({action:'saveOrg', year: orgState.year, org: payload}).then(function(){
     markOrgClean();
@@ -1765,6 +1768,7 @@ function doSaveOrgData_(){
     if(res && res.ok) orgLoadedUpdatedAt = res.updatedAt;
   }).catch(function(err){
     console.error(err);
+    badge.textContent='저장 실패'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse');
     alert('저장 중 오류가 발생했습니다.');
   });
 }
