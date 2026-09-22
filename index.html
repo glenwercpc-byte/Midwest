@@ -43,11 +43,12 @@ body{
   flex-wrap:wrap;
 }
 .toolbar .brand-dropdown{position:relative;margin-right:auto;}
+.toolbar .brand-row{display:flex;align-items:center;gap:10px;}
 .toolbar .brand{
   font-family:'Noto Serif KR',serif;
   font-weight:600;font-size:15px;
   letter-spacing:.02em;
-  white-space:nowrap;cursor:pointer;
+  white-space:nowrap;cursor:default;
 }
 .meeting-menu{
   position:absolute;top:calc(100% + 6px);left:0;
@@ -63,7 +64,6 @@ body{
   white-space:nowrap;
 }
 .meeting-menu-item:hover{background:var(--paper-deep);}
-.meeting-menu-item .mk{color:var(--maroon);font-weight:600;font-size:11px;margin-left:4px;}
 .meeting-menu-empty{padding:10px;font-size:12.5px;color:var(--sub);white-space:normal;}
 .toolbar .brand small{display:block;font-family:'Noto Sans KR',sans-serif;font-weight:400;font-size:11px;color:#B9C2D6;}
 .tbtn{
@@ -476,6 +476,7 @@ body{
   .toolbar{flex-wrap:wrap;row-gap:8px;}
   .toolbar-row1{display:flex;flex-wrap:wrap;align-items:center;width:100%;gap:8px;row-gap:6px;}
   .toolbar-row1 .brand-dropdown{flex:1;text-align:center;margin-right:0;}
+  .toolbar-row1 .brand-row{justify-content:center;}
   .toolbar-row2{display:flex;flex-wrap:wrap;justify-content:center;width:100%;gap:8px;}
 }
 .page-num{display:none;}
@@ -533,7 +534,10 @@ body{
     <div class="toolbar-row1">
       <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
       <div class="brand-dropdown">
-        <div class="brand" id="brandTrigger" onclick="toggleMeetingMenu(event)">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
+        <div class="brand-row">
+          <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
+          <button type="button" class="tbtn" onclick="toggleMeetingMenu(event)">회차 선택</button>
+        </div>
         <div class="meeting-menu hidden" id="meetingMenu"></div>
       </div>
       <button class="tbtn" onclick="openOrgPanel()">🗂️ 중서부 한미노회 조직</button>
@@ -1276,8 +1280,8 @@ function renderMeetingMenuList(items){
   if(!items || !items.length){ menu.innerHTML = '<div class="meeting-menu-empty">저장된 회의안이 없습니다.</div>'; return; }
   var out = '';
   items.forEach(function(x){
-    var kindLabel = x.kind === 'regular' ? '정규 모임' : '이·취임식';
-    out += '<button type="button" class="meeting-menu-item js-load-meeting" data-id="'+esc(x.id)+'">제 '+esc(x.ordinal)+'차 정기노회<span class="mk">'+esc(kindLabel)+'</span></button>';
+    var dateText = x.dateDisplay ? ' - '+x.dateDisplay : '';
+    out += '<button type="button" class="meeting-menu-item js-load-meeting" data-id="'+esc(x.id)+'">제 '+esc(x.ordinal)+'차 정기노회'+esc(dateText)+'</button>';
   });
   menu.innerHTML = out;
 }
