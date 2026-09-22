@@ -74,7 +74,7 @@ body{
   font-family:'Noto Sans KR',sans-serif;
 }
 .tbtn:hover{background:rgba(255,255,255,.16);}
-.tbtn.primary{background:var(--gold);border-color:var(--gold);color:#241C08;font-weight:700;}
+.tbtn.primary{background:var(--gold);border-color:var(--gold);color:#FFFFFF;font-weight:700;}
 .tbtn.primary:hover{background:#BC943A;}
 .tbtn.mode-locked{background:var(--maroon-soft);color:var(--maroon);border-color:var(--maroon-soft);}
 .tbtn.mode-edit{background:var(--gold-soft);color:#4a3a05;border-color:var(--gold-soft);}
@@ -550,12 +550,12 @@ body{
       </div>
     </div>
     <div class="toolbar-row2">
-      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
+      <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
       <span class="savebadge" id="saveBadge">저장 안 됨</span>
       <button class="tbtn" onclick="onSaveButtonClick()">저장</button>
       <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
       <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
-      <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
+      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
     </div>
   </div>
 
