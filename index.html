@@ -168,6 +168,13 @@ body{
   margin:0 0 8px;display:flex;align-items:center;gap:8px;
 }
 .roman-block h4 .chair{font-size:12px;color:var(--sub);font-weight:400;font-family:'Noto Sans KR',sans-serif;}
+.rb-time-input{
+  margin-left:auto;border:none;border-bottom:1px dotted var(--edge);background:transparent;
+  font-size:12.5px;padding:2px 4px;font-family:'Noto Sans KR',sans-serif;width:92px;
+  text-align:right;color:var(--ink-soft);
+}
+.rb-time-input:focus{outline:none;border-bottom:1px solid var(--gold);}
+.rb-time-display{margin-left:auto;font-size:12px;color:var(--sub);font-weight:400;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
 .role-grid{display:grid;grid-template-columns:86px 1fr;gap:5px 10px;font-size:13px;}
 .role-grid .k{color:var(--sub);}
 .role-grid input{
@@ -771,6 +778,7 @@ function blankMeeting(kind){
     worship: {songLeader:'',emcee:'',accompanist:'',prayer:'',preacher:'',scripture:'',sermonTitle:'',benediction:''},
     installation: {emcee:'',note:'이임사, 헌법 선서, 스톨 인계, 취임사, 신 임원 소개'},
     meetingChair: '',
+    times: {worship:'', meetingStart:'', adjourn:''},
     sections: kind === 'regular' ? defaultSkeletonRegular() : defaultSkeletonInstallation()
   };
 }
@@ -1020,18 +1028,23 @@ function tocRows(editable){
   return out;
 }
 
-function renderSectionTitle(k, sec){
+function renderSectionTitle(k, sec, trailingHtml){
   var disabledAttr = editMode ? '' : ' disabled';
+  trailingHtml = trailingHtml || '';
   if(editMode){
-    return '<div class="sec-title"><span class="num">'+sec.num+'</span><input class="title-edit js-field"'+fieldAttr(['meeting','sections',k,'title'])+disabledAttr+' value="'+esc(sec.title)+'"></div>';
+    return '<div class="sec-title"><span class="num">'+sec.num+'</span><input class="title-edit js-field"'+fieldAttr(['meeting','sections',k,'title'])+disabledAttr+' value="'+esc(sec.title)+'">'+trailingHtml+'</div>';
   }
-  return '<div class="sec-title"><span class="num">'+sec.num+'</span><span>'+esc(sec.title)+'</span></div>';
+  return '<div class="sec-title"><span class="num">'+sec.num+'</span><span>'+esc(sec.title)+'</span>'+trailingHtml+'</div>';
 }
 
 function renderSection(k){
   var sec = state.meeting.sections[k];
   var out = '<div class="section-block" id="sec-'+k+'" data-anchor="'+k+'">';
-  out += renderSectionTitle(k, sec);
+  var ordForTitle = sectionOrder();
+  var isClosing = k === ordForTitle[ordForTitle.length-1] && sec.kind==='static';
+  if(!state.meeting.times) state.meeting.times = {worship:'', meetingStart:'', adjourn:''};
+  var titleTrailing = isClosing ? timeField(['meeting','times','adjourn'], state.meeting.times.adjourn) : '';
+  out += renderSectionTitle(k, sec, titleTrailing);
 
   if(sec.kind==='static'){
     var ord = sectionOrder();
@@ -1086,6 +1099,15 @@ function inputSpan(pathArr, val){
   return esc(val||'—');
 }
 
+/** 제목 오른쪽에 붙는 시간 입력칸 (예: 00:00 PM). 편집모드에선 입력칸, 보기모드에선
+    값이 있을 때만 괄호로 표시하고 비어있으면 아무것도 안 보여줍니다. */
+function timeField(pathArr, val){
+  if(editMode){
+    return '<input class="rb-time-input js-field"'+fieldAttr(pathArr)+' value="'+esc(val)+'" placeholder="00:00 PM">';
+  }
+  return val ? '<span class="rb-time-display">('+esc(val)+')</span>' : '';
+}
+
 function roleField(labelKo, pathArr, val){
   if(editMode){
     return '<div class="k">'+labelKo+'</div><div><input class="js-field"'+fieldAttr(pathArr)+' value="'+esc(val)+'"></div>';
@@ -1135,7 +1157,9 @@ function renderPage2Header(){
   out += editMode ? esc(m.hostChurchKo)+' <input class="venue-note-input js-field"'+fieldAttr(['meeting','venueNote'])+' value="'+esc(m.venueNote)+'" placeholder="(예: 시카고노회 소속)">' : esc(m.hostChurchKo+' '+(m.venueNote||''));
   out += '</span></div></div>';
 
-  out += '<div class="roman-block"><h4>I. 개회예배</h4><div class="role-grid">';
+  if(!m.times) m.times = {worship:'', meetingStart:'', adjourn:''};
+
+  out += '<div class="roman-block"><h4>I. 개회예배'+timeField(['meeting','times','worship'], m.times.worship)+'</h4><div class="role-grid">';
   out += roleField('찬양인도', ['meeting','worship','songLeader'], m.worship.songLeader);
   out += roleField('사회', ['meeting','worship','emcee'], m.worship.emcee);
   out += roleField('반주', ['meeting','worship','accompanist'], m.worship.accompanist);
@@ -1147,7 +1171,7 @@ function renderPage2Header(){
   out += '</div></div>';
 
   if(isRegular){
-    out += '<div class="roman-block"><h4>II. 회 순 (Docket)</h4><div class="role-grid">';
+    out += '<div class="roman-block"><h4>II. 회 순 (Docket)'+timeField(['meeting','times','meetingStart'], m.times.meetingStart)+'</h4><div class="role-grid">';
     out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
     out += '</div></div>';
   } else {
@@ -1156,7 +1180,7 @@ function renderPage2Header(){
     out += roleField('순서', ['meeting','installation','note'], m.installation.note);
     out += '</div></div>';
 
-    out += '<div class="roman-block"><h4>III. 회의</h4><div class="role-grid">';
+    out += '<div class="roman-block"><h4>III. 회의'+timeField(['meeting','times','meetingStart'], m.times.meetingStart)+'</h4><div class="role-grid">';
     out += roleField('사회(노회장)', ['meeting','meetingChair'], m.meetingChair);
     out += '</div></div>';
   }
