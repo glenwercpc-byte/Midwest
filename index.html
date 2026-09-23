@@ -53,8 +53,8 @@ body{
 .meeting-menu{
   position:absolute;top:calc(100% + 6px);left:0;
   background:var(--white);border:1px solid var(--edge);border-radius:8px;
-  box-shadow:0 12px 30px rgba(0,0,0,.25);padding:6px;min-width:260px;max-width:320px;
-  max-height:340px;overflow-y:auto;z-index:110;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);padding:8px;min-width:280px;max-width:360px;
+  max-height:380px;overflow-y:auto;z-index:110;
   display:flex;flex-direction:column;gap:2px;
 }
 .meeting-menu.hidden{display:none;}
@@ -350,22 +350,12 @@ body{
   font-family:'Noto Sans KR',sans-serif;font-size:13.5px;line-height:1.6;
 }
 
-/* ---------- Archive panel ---------- */
-#archiveOverlay{position:fixed;inset:0;background:rgba(20,20,15,.5);display:flex;justify-content:flex-end;z-index:90;}
-#archiveOverlay.hidden{display:none;}
-.archive-panel{width:100%;max-width:420px;background:var(--paper);height:100%;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.2);}
-.archive-head{padding:18px 20px;border-bottom:1px solid var(--edge);background:var(--ink);color:var(--white);display:flex;justify-content:space-between;align-items:center;}
-.archive-head h3{font-family:'Noto Serif KR',serif;margin:0;font-size:16px;}
-.archive-body{padding:16px 20px;}
-.archive-search{width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:7px;font-size:13.5px;margin-bottom:6px;font-family:'Noto Sans KR',sans-serif;}
-.search-hint{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:14px;}
-.archive-item{
-  background:var(--white);border:1px solid var(--edge);border-radius:7px;padding:12px 14px;
-  margin-bottom:10px;cursor:pointer;
+/* ---------- 회차 선택 드롭다운 안의 검색 ---------- */
+.meeting-search{
+  width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;
+  font-size:12.5px;font-family:'Noto Sans KR',sans-serif;margin-bottom:4px;
 }
-.archive-item:hover{border-color:var(--gold);}
-.archive-item .t{font-family:'Noto Serif KR',serif;font-weight:600;color:var(--ink);font-size:14px;}
-.archive-item .d{font-size:12px;color:var(--sub);margin-top:3px;}
+.search-hint{font-size:11px;color:var(--sub);line-height:1.5;margin:0 0 8px;white-space:normal;}
 .archive-empty{color:var(--sub);font-size:13px;text-align:center;margin-top:30px;}
 
 /* ---------- 위원회 조직 패널 ---------- */
@@ -469,12 +459,6 @@ body{
   font-family:'Noto Sans KR',sans-serif;
 }
 .search-nav-bar button:hover{background:rgba(255,255,255,.24);}
-.archive-actions{display:flex;gap:8px;margin-bottom:14px;}
-.archive-actions button{
-  flex:1;padding:9px;border-radius:7px;border:1px solid var(--edge);background:var(--white);
-  font-size:12.5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;color:var(--ink-soft);
-}
-.archive-actions button.danger{color:var(--maroon);border-color:var(--maroon-soft);}
 
 .toolbar-row1,.toolbar-row2{display:contents;}
 @media (max-width:860px){
@@ -491,7 +475,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#archiveOverlay,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,.meeting-menu,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,.meeting-menu,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -547,7 +531,11 @@ body{
           <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
           <button type="button" class="tbtn" onclick="toggleMeetingMenu(event)">회차 선택</button>
         </div>
-        <div class="meeting-menu hidden" id="meetingMenu"></div>
+        <div class="meeting-menu hidden" id="meetingMenu">
+          <input class="meeting-search" id="meetingSearchInput" placeholder="회차, 날짜, 내용으로 검색…" oninput="applyMeetingQuickFilter()" onkeydown="if(event.key==='Enter'){ doMeetingContentSearch(); }">
+          <div class="search-hint">회차·날짜는 입력 즉시 걸러지고, 보고/동의안 내용까지 찾으려면 <b>Enter</b>를 눌러주세요.</div>
+          <div id="meetingMenuList"></div>
+        </div>
       </div>
       <button class="tbtn" onclick="openOrgPanel()">🗂️ 중서부 한미노회 조직</button>
       <div class="boo-dropdown">
@@ -562,7 +550,6 @@ body{
       <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
       <span class="savebadge" id="saveBadge">저장 안 됨</span>
       <button class="tbtn" onclick="onSaveButtonClick()">저장</button>
-      <button class="tbtn" onclick="openArchive()">보관함 · 검색</button>
       <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
       <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
     </div>
@@ -584,24 +571,6 @@ body{
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
-  </div>
-</div>
-
-<div id="archiveOverlay" class="hidden">
-  <div class="archive-panel">
-    <div class="archive-head">
-      <h3>보관함 · 검색</h3>
-      <button class="modal-close" onclick="closeArchive()">✕</button>
-    </div>
-    <div class="archive-body">
-      <input class="archive-search" id="archiveSearch" placeholder="회차, 날짜, 장소, 내용으로 검색…" oninput="applyQuickFilter()" onkeydown="if(event.key==='Enter'){ doContentSearch(); }">
-      <div class="search-hint">회차·날짜·교회명은 입력 즉시 걸러지고, 보고/동의안 내용까지 찾으려면 <b>Enter</b>를 누르거나 아래 "내용 전체 검색"을 눌러주세요.</div>
-      <div class="archive-actions">
-        <button onclick="refreshArchiveIndex()">🔄 목록 새로고침</button>
-        <button onclick="doContentSearch()">🔎 내용 전체 검색</button>
-      </div>
-      <div id="archiveList"></div>
-    </div>
   </div>
 </div>
 
@@ -1277,45 +1246,7 @@ document.addEventListener('click', function(e){
   if(!menu.classList.contains('hidden') && !e.target.closest('.boo-dropdown')){ closeBooMenu(); }
 });
 
-/* ---------- 회순 오른쪽 타이틀: 저장된 회의 목록 드롭다운 ---------- */
-function toggleMeetingMenu(e){
-  if(e) e.stopPropagation();
-  var menu = document.getElementById('meetingMenu');
-  var wasHidden = menu.classList.contains('hidden');
-  menu.classList.toggle('hidden');
-  if(wasHidden){ loadMeetingMenuList(); }
-}
-function closeMeetingMenu(){ document.getElementById('meetingMenu').classList.add('hidden'); }
-
-function loadMeetingMenuList(){
-  var menu = document.getElementById('meetingMenu');
-  menu.innerHTML = '<div class="meeting-menu-empty loading-pulse">불러오는 중…</div>';
-  if(!isConfigured()){ menu.innerHTML = '<div class="meeting-menu-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
-  jsonp({action:'list'}).then(function(res){
-    if(res && res.ok){
-      renderMeetingMenuList(res.items);
-    } else {
-      menu.innerHTML = '<div class="meeting-menu-empty">불러오기 실패:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
-    }
-  }).catch(function(err){
-    menu.innerHTML = '<div class="meeting-menu-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
-  });
-}
-function renderMeetingMenuList(items){
-  var menu = document.getElementById('meetingMenu');
-  if(!items || !items.length){ menu.innerHTML = '<div class="meeting-menu-empty">저장된 회의안이 없습니다.</div>'; return; }
-  var out = '';
-  items.forEach(function(x){
-    var dateText = x.dateDisplay ? ' - '+x.dateDisplay : '';
-    out += '<button type="button" class="meeting-menu-item js-load-meeting" data-id="'+esc(x.id)+'">제 '+esc(x.ordinal)+'차 정기노회'+esc(dateText)+'</button>';
-  });
-  menu.innerHTML = out;
-}
-document.getElementById('meetingMenu').addEventListener('click', onWorkspaceClick);
-document.addEventListener('click', function(e){
-  var menu = document.getElementById('meetingMenu');
-  if(!menu.classList.contains('hidden') && !e.target.closest('.brand-dropdown')){ closeMeetingMenu(); }
-});
+/* ---------- 회순 오른쪽 타이틀: 저장된 회의 목록 + 검색 드롭다운 (아래에서 정의) ---------- */
 
 /* ============================= 편집모드 토글 ============================= */
 function toggleEditMode(){ editMode=!editMode; render(); }
@@ -1360,14 +1291,12 @@ function onWorkspaceInput(e){
 document.getElementById('docPanel').addEventListener('click', onWorkspaceClick);
 document.getElementById('docPanel').addEventListener('input', onWorkspaceInput);
 document.getElementById('tocList').addEventListener('click', onWorkspaceClick);
-document.getElementById('archiveList').addEventListener('click', onWorkspaceClick);
 document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target.id==='modalOverlay') closeModal(); });
-document.getElementById('archiveOverlay').addEventListener('click', function(e){ if(e.target.id==='archiveOverlay') closeArchive(); });
 document.getElementById('newMeetingOverlay').addEventListener('click', function(e){ if(e.target.id==='newMeetingOverlay') closeNewMeetingDialog(); });
 document.getElementById('saveChoiceOverlay').addEventListener('click', function(e){ if(e.target.id==='saveChoiceOverlay') closeSaveChoiceDialog(); });
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    closeModal(); closeArchive(); closeBooMenu(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
+    closeModal(); closeBooMenu(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
     var newOrgOpen = !document.getElementById('newOrgOverlay').classList.contains('hidden');
     if(newOrgOpen){ closeNewOrgDialog(); } else { closeOrgPanel(); }
   }
@@ -1497,101 +1426,107 @@ function newMeeting(kind){
   markDirty();
   closeNewMeetingDialog();
   render();
-  closeArchive();
+  closeMeetingMenu();
 }
 
-/* ---------- 보관함 패널 ---------- */
-var archiveFullCache = [];   // 서버에서 받아온 전체 목록 (빠른 필터용)
-var archiveIndexCache = [];  // 지금 화면에 실제로 그려지는 목록
-var lastSearchQuery = '';    // 마지막으로 실행한 "내용 전체 검색" 검색어
-var lastSearchResults = [];  // 그 검색의 결과 목록 (목록으로 돌아가기용)
+/* ---------- 회순 오른쪽 "회차 선택" 드롭다운: 목록 + 검색 ---------- */
+var meetingFullCache = [];   // 서버에서 받아온 전체 목록 (빠른 필터용)
+var meetingListCache = [];   // 지금 드롭다운에 실제로 그려지는 목록
+var lastSearchQuery = '';    // 마지막으로 실행한 "내용 검색" 검색어
+var lastSearchResults = [];  // 그 검색의 결과 목록 (검색 결과로 돌아가기용)
 var searchMatches = [];      // 현재 불러온 회의 안에서 검색어가 등장하는 위치들
 var searchMatchIndex = -1;
 
-function openArchive(){
-  document.getElementById('archiveOverlay').classList.remove('hidden');
-  document.getElementById('archiveSearch').value = '';
-  lastSearchQuery = ''; lastSearchResults = [];
-  archiveFullCache = []; archiveIndexCache = [];
-  clearSearchMatches();
-  document.getElementById('archiveList').innerHTML =
-    '<div class="archive-empty">검색어를 입력하고 Enter를 누르거나,<br>아래 "🔄 목록 새로고침"을 눌러 전체 목록을 확인하세요.</div>';
+function toggleMeetingMenu(e){
+  if(e) e.stopPropagation();
+  var menu = document.getElementById('meetingMenu');
+  var wasHidden = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden');
+  if(wasHidden){
+    document.getElementById('meetingSearchInput').value = '';
+    lastSearchQuery = ''; lastSearchResults = [];
+    loadMeetingFullList();
+  }
 }
-function closeArchive(){ document.getElementById('archiveOverlay').classList.add('hidden'); }
+function closeMeetingMenu(){ document.getElementById('meetingMenu').classList.add('hidden'); }
 
-function refreshArchiveIndex(){
-  var list = document.getElementById('archiveList');
-  list.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
-  if(!isConfigured()){ list.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
+function loadMeetingFullList(){
+  var list = document.getElementById('meetingMenuList');
+  list.innerHTML = '<div class="meeting-menu-empty loading-pulse">불러오는 중…</div>';
+  if(!isConfigured()){ list.innerHTML = '<div class="meeting-menu-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
   jsonp({action:'list'}).then(function(res){
     if(res && res.ok){
-      archiveFullCache = res.items;
-      applyQuickFilter();
+      meetingFullCache = res.items;
+      applyMeetingQuickFilter();
     } else {
-      archiveFullCache = []; archiveIndexCache = [];
-      list.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+      meetingFullCache = [];
+      list.innerHTML = '<div class="meeting-menu-empty">불러오기 실패:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
     }
   }).catch(function(err){
-    archiveFullCache = []; archiveIndexCache = [];
-    list.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+    meetingFullCache = [];
+    list.innerHTML = '<div class="meeting-menu-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
 
-/* 검색창에 입력하는 즉시 실행되는, 회차/날짜/교회명만 보는 빠른 필터
-   (서버 왕복 없이 archiveFullCache를 그대로 걸러서 보여줌) */
-function applyQuickFilter(){
-  var q = (document.getElementById('archiveSearch').value||'').trim().toLowerCase();
-  var items = archiveFullCache.filter(function(x){
+/* 검색창에 입력하는 즉시, 서버 왕복 없이 회차/날짜/교회명만 걸러서 보여줍니다. */
+function applyMeetingQuickFilter(){
+  var q = (document.getElementById('meetingSearchInput').value||'').trim().toLowerCase();
+  var items = meetingFullCache.filter(function(x){
     if(!q) return true;
     var hay = [x.id,x.ordinal,x.dateDisplay,x.dateISO,x.hostChurchKo].join(' ').toLowerCase();
     return hay.indexOf(q)>-1;
   });
-  archiveIndexCache = items;
-  renderArchiveList();
+  meetingListCache = items;
+  renderMeetingMenuList(items);
 }
 
-/* archiveIndexCache를 있는 그대로 그리기만 함 — 추가로 다시 걸러내지 않음. */
-function renderArchiveList(){
-  var list = document.getElementById('archiveList');
-  var items = archiveIndexCache;
-  if(items.length===0){ list.innerHTML='<div class="archive-empty">저장된 회의안이 없습니다.<br>먼저 "저장"을 눌러 보관해보세요.</div>'; return; }
-  var out = '';
-  items.forEach(function(x){
-    out += '<div class="archive-item js-load-meeting" data-id="'+esc(x.id)+'"><div class="t">제 '+esc(x.ordinal)+' 차 정기노회</div><div class="d">'+esc(x.dateDisplay||'')+' · '+esc(x.hostChurchKo||'')+'</div></div>';
-  });
-  list.innerHTML = out;
-}
-
-function doContentSearch(){
-  var q = (document.getElementById('archiveSearch').value||'').trim();
-  if(!q){ refreshArchiveIndex(); return; }
+/* 보고/동의안 본문 내용까지 서버에서 검색합니다 (Enter). */
+function doMeetingContentSearch(){
+  var q = (document.getElementById('meetingSearchInput').value||'').trim();
+  if(!q){ loadMeetingFullList(); return; }
   if(!isConfigured()) return;
-  var list = document.getElementById('archiveList');
-  list.innerHTML = '<div class="archive-empty loading-pulse">내용 검색 중…</div>';
+  var list = document.getElementById('meetingMenuList');
+  list.innerHTML = '<div class="meeting-menu-empty loading-pulse">내용 검색 중…</div>';
   jsonp({action:'search', q:q}).then(function(res){
     if(res && res.ok){
-      archiveIndexCache = res.items;
+      meetingListCache = res.items;
       lastSearchQuery = q;
       lastSearchResults = res.items;
-      renderArchiveList();
+      renderMeetingMenuList(res.items);
     } else {
-      archiveIndexCache = [];
-      list.innerHTML = '<div class="archive-empty">검색 서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+      meetingListCache = [];
+      list.innerHTML = '<div class="meeting-menu-empty">검색 서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
     }
-    selectSearchBox();
+    selectMeetingSearchBox();
   }).catch(function(err){
-    list.innerHTML = '<div class="archive-empty">검색 요청 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
-    selectSearchBox();
+    list.innerHTML = '<div class="meeting-menu-empty">검색 요청 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+    selectMeetingSearchBox();
   });
 }
 
 /* 검색이 끝나면 검색어를 통째로 선택해둬서, 바로 다음 검색어를 타이핑하면
    이전 검색어가 자동으로 지워지고 새로 입력되게 합니다. */
-function selectSearchBox(){
-  var box = document.getElementById('archiveSearch');
+function selectMeetingSearchBox(){
+  var box = document.getElementById('meetingSearchInput');
   box.focus();
   box.select();
 }
+
+function renderMeetingMenuList(items){
+  var list = document.getElementById('meetingMenuList');
+  if(!items || !items.length){ list.innerHTML = '<div class="meeting-menu-empty">저장된 회의안이 없습니다.</div>'; return; }
+  var out = '';
+  items.forEach(function(x){
+    var dateText = x.dateDisplay ? ' - '+x.dateDisplay : '';
+    out += '<button type="button" class="meeting-menu-item js-load-meeting" data-id="'+esc(x.id)+'">제 '+esc(x.ordinal)+'차 정기노회'+esc(dateText)+'</button>';
+  });
+  list.innerHTML = out;
+}
+document.getElementById('meetingMenu').addEventListener('click', onWorkspaceClick);
+document.addEventListener('click', function(e){
+  var menu = document.getElementById('meetingMenu');
+  if(!menu.classList.contains('hidden') && !e.target.closest('.brand-dropdown')){ closeMeetingMenu(); }
+});
 
 function loadMeeting(id){
   if(!isConfigured()) return;
@@ -1603,7 +1538,6 @@ function loadMeeting(id){
     currentAnchor='cover';
     markClean();
     render();
-    closeArchive();
     closeMeetingMenu();
     window.scrollTo(0,0);
     if(lastSearchQuery){
@@ -2117,10 +2051,10 @@ function prevMatch(){
 }
 
 function backToSearchResults(){
-  document.getElementById('archiveOverlay').classList.remove('hidden');
-  document.getElementById('archiveSearch').value = lastSearchQuery;
-  archiveIndexCache = lastSearchResults;
-  renderArchiveList();
+  document.getElementById('meetingMenu').classList.remove('hidden');
+  document.getElementById('meetingSearchInput').value = lastSearchQuery;
+  meetingListCache = lastSearchResults;
+  renderMeetingMenuList(lastSearchResults);
 }
 
 function clearSearchMatches(){
