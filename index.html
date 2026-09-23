@@ -1415,7 +1415,7 @@ function blankFinance(year){
   var accounts = defaultFinanceAccounts().map(function(a){
     return {
       code:a.code, name:a.name, group:a.group, category:a.category, categoryLabel:a.categoryLabel,
-      priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
+      memo:'', priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
     };
   });
   return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [] };
@@ -1564,13 +1564,13 @@ function renderFinanceAccountSection(title, group){
 
   var out = '<div class="finance-section"><h4>'+esc(title)+'</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
+  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:165px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
   out += '</tr></thead><tbody>';
 
   categories.forEach(function(cat){
     var catAccounts = accounts.filter(function(a){ return a.category===cat; });
     if(cat!=='carryover'){
-      out += '<tr><td colspan="5" class="finance-group-label">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
+      out += '<tr><td colspan="6" class="finance-group-label">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
     }
     var catSubtotal=0, catBudgetSubtotal=0;
     catAccounts.forEach(function(a){
@@ -1580,17 +1580,18 @@ function renderFinanceAccountSection(title, group){
       out += '<tr>';
       out += '<td class="acc-code">'+esc(a.code)+'</td>';
       out += '<td class="acc-name">'+esc(a.name)+'</td>';
+      out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
       out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(a.priorActual)+'"></td>';
       out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(a.budget)+'"></td>';
       out += '<td><button type="button" class="finance-actual-btn js-open-monthly" data-idx="'+idx+'">'+fmtMoney(actual)+'</button></td>';
       out += '</tr>';
     });
     if(cat!=='carryover' && catAccounts.length>1){
-      out += '<tr class="subtotal"><td colspan="2" style="text-align:right;">소계</td><td></td><td style="text-align:right;">'+fmtMoney(catBudgetSubtotal)+'</td><td style="text-align:right;">'+fmtMoney(catSubtotal)+'</td></tr>';
+      out += '<tr class="subtotal"><td colspan="3" style="text-align:right;">소계</td><td></td><td style="text-align:right;">'+fmtMoney(catBudgetSubtotal)+'</td><td style="text-align:right;">'+fmtMoney(catSubtotal)+'</td></tr>';
     }
   });
 
-  out += '<tr class="grandtotal"><td colspan="2">'+(group==='income'?'Total Revenues':'Total Expenses')+'</td><td></td>';
+  out += '<tr class="grandtotal"><td colspan="3">'+(group==='income'?'Total Revenues':'Total Expenses')+'</td><td></td>';
   var grandBudget = group==='income' ? finComputeTotals(fin).totalBudgetRevenue : finComputeTotals(fin).totalBudgetExpense;
   var grandActual = group==='income' ? finComputeTotals(fin).totalRevenue : finComputeTotals(fin).totalExpense;
   out += '<td style="text-align:right;">'+fmtMoney(grandBudget)+'</td><td style="text-align:right;">'+fmtMoney(grandActual)+'</td></tr>';
@@ -1743,32 +1744,32 @@ function buildFinancePrintView(){
     categories.forEach(function(cat){
       var catAccounts = accounts.filter(function(a){ return a.category===cat; });
       if(cat!=='carryover'){
-        rows += '<tr><td colspan="5" style="background:#f5f5f5;font-weight:700;">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
+        rows += '<tr><td colspan="6" style="background:#f5f5f5;font-weight:700;">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
       }
       var subtotal=0, subBudget=0;
       catAccounts.forEach(function(a){
         var actual = finAccountActual(a);
         subtotal += actual; subBudget += (parseFloat(a.budget)||0);
-        rows += '<tr><td>'+esc(a.code)+'</td><td>'+esc(a.name)+'</td><td class="fp-num">'+fmtMoney(a.priorActual)+'</td><td class="fp-num">'+fmtMoney(a.budget)+'</td><td class="fp-num">'+fmtMoney(actual)+'</td></tr>';
+        rows += '<tr><td>'+esc(a.code)+'</td><td>'+esc(a.name)+'</td><td>'+esc(a.memo||'')+'</td><td class="fp-num">'+fmtMoney(a.priorActual)+'</td><td class="fp-num">'+fmtMoney(a.budget)+'</td><td class="fp-num">'+fmtMoney(actual)+'</td></tr>';
       });
       if(cat!=='carryover' && catAccounts.length>1){
-        rows += '<tr class="fp-subtotal"><td colspan="2">소계</td><td></td><td class="fp-num">'+fmtMoney(subBudget)+'</td><td class="fp-num">'+fmtMoney(subtotal)+'</td></tr>';
+        rows += '<tr class="fp-subtotal"><td colspan="3">소계</td><td></td><td class="fp-num">'+fmtMoney(subBudget)+'</td><td class="fp-num">'+fmtMoney(subtotal)+'</td></tr>';
       }
     });
     return rows;
   }
 
   out += '<div class="fp-section-title">수입 (Income)</div>';
-  out += '<table><thead><tr><th>계정</th><th>내용</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += '<table><thead><tr><th>계정</th><th>내용</th><th>Memo</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
   out += accountRows('income');
-  out += '<tr class="fp-total"><td colspan="4">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalRevenue)+'</td></tr>';
-  out += '<tr class="fp-total"><td colspan="4">Total Income Revenues (이월금 포함)</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
+  out += '<tr class="fp-total"><td colspan="5">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalRevenue)+'</td></tr>';
+  out += '<tr class="fp-total"><td colspan="5">Total Income Revenues (이월금 포함)</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
   out += '</tbody></table>';
 
   out += '<div class="fp-section-title">지출 (Expense)</div>';
-  out += '<table><thead><tr><th>계정</th><th>내용</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += '<table><thead><tr><th>계정</th><th>내용</th><th>Memo</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
   out += accountRows('expense');
-  out += '<tr class="fp-total"><td colspan="4">Total Expenses</td><td class="fp-num">'+fmtMoney(totals.totalExpense)+'</td></tr>';
+  out += '<tr class="fp-total"><td colspan="5">Total Expenses</td><td class="fp-num">'+fmtMoney(totals.totalExpense)+'</td></tr>';
   out += '</tbody></table>';
 
   out += '<div class="fp-section-title">잔액 (Balance): '+fmtMoney(totals.balance)+'</div>';
