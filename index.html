@@ -297,14 +297,15 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay{
+#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden{display:none;}
+#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#financeOverlay.hidden{display:none;}
 #newOrgOverlay{z-index:130;}
 #newMeetingOverlay{z-index:130;}
 #saveChoiceOverlay{z-index:130;}
+#financeOverlay{z-index:130;}
 .dlg-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -329,21 +330,6 @@ body{
 }
 .modal-body{padding:18px 20px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink-soft);}
 
-/* 규례서 드롭다운 메뉴 */
-.boo-dropdown{position:relative;}
-.boo-menu{
-  position:absolute;top:calc(100% + 6px);left:0;
-  background:var(--white);border:1px solid var(--edge);border-radius:8px;
-  box-shadow:0 12px 30px rgba(0,0,0,.25);padding:6px;min-width:200px;z-index:110;
-  display:flex;flex-direction:column;gap:4px;
-}
-.boo-menu.hidden{display:none;}
-.boo-menu button{
-  background:none;border:none;text-align:left;padding:9px 10px;border-radius:6px;
-  font-size:13px;color:var(--ink);cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-  white-space:nowrap;
-}
-.boo-menu button:hover{background:var(--paper-deep);}
 .modal-body textarea{
   width:100%;min-height:160px;border:1px solid var(--edge);border-radius:6px;padding:10px;
 
@@ -475,7 +461,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,.meeting-menu,.boo-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -538,13 +524,7 @@ body{
         </div>
       </div>
       <button class="tbtn" onclick="openOrgPanel()">🗂️ 중서부 한미노회 조직</button>
-      <div class="boo-dropdown">
-        <button class="tbtn" id="booToggleBtn" onclick="toggleBooMenu(event)">📖 규례서</button>
-        <div class="boo-menu hidden" id="booMenu">
-          <button type="button" onclick="openBookOfOrderPdf('ko')">한국어 규례서</button>
-          <button type="button" onclick="openBookOfOrderPdf('en')">English (Book of Order)</button>
-        </div>
-      </div>
+      <button class="tbtn" onclick="openFinancePanel()">💰 재정 관리</button>
     </div>
     <div class="toolbar-row2">
       <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
@@ -639,6 +619,18 @@ body{
         <button type="button" onclick="confirmSaveChoice('save')">변경사항 저장</button>
         <button type="button" onclick="confirmSaveChoice('discard')">변경 취소 (마지막 저장 상태로 되돌리기)</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="financeOverlay" class="hidden">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-head">
+      <h3>💰 재정 관리</h3>
+      <button class="modal-close" onclick="closeFinancePanel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="dlg-note">재정 관리 기능은 준비 중입니다. 곧 내용이 추가될 예정입니다.</p>
     </div>
   </div>
 </div>
@@ -1225,26 +1217,10 @@ function openAttachment(pathArr, idx){
 }
 function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
 
-/* ---------- 규례서 (PC(USA) Book of Order) 찾아보기 ----------
-   저작권이 있는 규례서 원문을 이 앱 안에 담지 않고, 미국장로교(PC(USA))
-   공식 사이트의 최신판(2025-2027) PDF를 새 탭으로 열어서 찾아보게 합니다. */
-var BOO_URL_KO = 'https://pcusa.org/sites/default/files/2026-08/Book_of_Order_2025-27_KO.pdf';
-var BOO_URL_EN = 'https://pcusa.org/sites/default/files/2025-08/2025_0724_Book_of_Order_Interactive_2025-2027.pdf';
-
-function toggleBooMenu(e){
-  if(e) e.stopPropagation();
-  document.getElementById('booMenu').classList.toggle('hidden');
-}
-function closeBooMenu(){ document.getElementById('booMenu').classList.add('hidden'); }
-function openBookOfOrderPdf(lang){
-  var base = (lang==='en') ? BOO_URL_EN : BOO_URL_KO;
-  window.open(base + '#zoom=200', '_blank', 'noopener');
-  closeBooMenu();
-}
-document.addEventListener('click', function(e){
-  var menu = document.getElementById('booMenu');
-  if(!menu.classList.contains('hidden') && !e.target.closest('.boo-dropdown')){ closeBooMenu(); }
-});
+/* ---------- 재정 관리 (내용은 추후 추가 예정) ---------- */
+function openFinancePanel(){ document.getElementById('financeOverlay').classList.remove('hidden'); }
+function closeFinancePanel(){ document.getElementById('financeOverlay').classList.add('hidden'); }
+document.getElementById('financeOverlay').addEventListener('click', function(e){ if(e.target.id==='financeOverlay') closeFinancePanel(); });
 
 /* ---------- 회순 오른쪽 타이틀: 저장된 회의 목록 + 검색 드롭다운 (아래에서 정의) ---------- */
 
@@ -1296,7 +1272,7 @@ document.getElementById('newMeetingOverlay').addEventListener('click', function(
 document.getElementById('saveChoiceOverlay').addEventListener('click', function(e){ if(e.target.id==='saveChoiceOverlay') closeSaveChoiceDialog(); });
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    closeModal(); closeBooMenu(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
+    closeModal(); closeFinancePanel(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
     var newOrgOpen = !document.getElementById('newOrgOverlay').classList.contains('hidden');
     if(newOrgOpen){ closeNewOrgDialog(); } else { closeOrgPanel(); }
   }
@@ -1477,7 +1453,12 @@ function applyMeetingQuickFilter(){
     return hay.indexOf(q)>-1;
   });
   meetingListCache = items;
-  renderMeetingMenuList(items);
+  if(items.length===0 && q!=='' && meetingFullCache.length>0){
+    // 입력 중일 뿐 실제로 저장된 회의가 없는 게 아니므로, 안내 문구 없이 빈 상태로 둡니다.
+    document.getElementById('meetingMenuList').innerHTML = '';
+  } else {
+    renderMeetingMenuList(items);
+  }
 }
 
 /* 보고/동의안 본문 내용까지 서버에서 검색합니다 (Enter). */
@@ -1486,7 +1467,7 @@ function doMeetingContentSearch(){
   if(!q){ loadMeetingFullList(); return; }
   if(!isConfigured()) return;
   var list = document.getElementById('meetingMenuList');
-  list.innerHTML = '<div class="meeting-menu-empty loading-pulse">내용 검색 중…</div>';
+  list.innerHTML = '<div class="meeting-menu-empty loading-pulse">내용이 포함된 회차를 검색 중…</div>';
   jsonp({action:'search', q:q}).then(function(res){
     if(res && res.ok){
       meetingListCache = res.items;
