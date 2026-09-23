@@ -297,15 +297,16 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay{
+#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#newFinanceOverlay,#monthlyEntryOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#financeOverlay.hidden{display:none;}
+#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#newFinanceOverlay.hidden,#monthlyEntryOverlay.hidden{display:none;}
 #newOrgOverlay{z-index:130;}
 #newMeetingOverlay{z-index:130;}
 #saveChoiceOverlay{z-index:130;}
-#financeOverlay{z-index:130;}
+#newFinanceOverlay{z-index:130;}
+#monthlyEntryOverlay{z-index:135;}
 .dlg-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -429,6 +430,94 @@ body{
 .org-print-view th{background:#eee;font-family:'Noto Serif KR',serif;font-weight:700;text-align:center;font-size:11.5px;}
 .org-print-view td:first-child{font-weight:700;white-space:nowrap;text-align:center;background:#f5f5f5;vertical-align:middle;}
 
+/* ---------- 재정 관리 패널 ---------- */
+#financeOverlay{
+  position:fixed;inset:0;background:rgba(20,20,15,.5);
+  display:flex;align-items:flex-start;justify-content:center;z-index:120;
+  padding:24px 16px;overflow-y:auto;
+}
+#financeOverlay.hidden{display:none;}
+.finance-panel{
+  background:var(--white);max-width:1200px;width:94vw;
+  border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
+  margin-bottom:40px;
+}
+.finance-head{
+  position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  padding:14px 20px;border-bottom:1px solid var(--edge);background:var(--paper-deep);
+  border-radius:8px 8px 0 0;z-index:2;
+}
+.finance-head h3{font-family:'Noto Serif KR',serif;font-size:16px;margin:0;color:var(--ink);}
+.finance-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.finance-head-actions .savebadge{color:var(--ink-soft)!important;font-weight:600;font-size:12px;}
+.finance-head-actions .tbtn{background:var(--ink);color:var(--white);border:1px solid var(--ink);font-weight:600;}
+.finance-head-actions .tbtn:hover{background:var(--ink-soft);border-color:var(--ink-soft);}
+.finance-body{padding:18px 20px 30px;}
+
+.finance-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.finance-summary-card{background:var(--paper);border:1px solid var(--edge);border-radius:8px;padding:12px 14px;text-align:center;}
+.finance-summary-card .lbl{font-size:11.5px;color:var(--sub);margin-bottom:4px;}
+.finance-summary-card .val{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--ink);}
+.finance-summary-card.income .val{color:#2f6b3a;}
+.finance-summary-card.expense .val{color:var(--maroon);}
+.finance-summary-card.balance .val{color:var(--gold);}
+
+.finance-section{margin-bottom:28px;}
+.finance-section h4{
+  font-family:'Noto Serif KR',serif;font-size:15px;color:var(--ink);
+  border-bottom:2px solid var(--ink);padding-bottom:6px;margin:0 0 10px;
+}
+.finance-group-label{
+  font-family:'Noto Serif KR',serif;font-weight:700;font-size:12.5px;color:var(--maroon);
+  background:var(--paper-deep);padding:6px 10px;margin:10px 0 4px;border-radius:5px;
+}
+
+.finance-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
+.finance-table th,.finance-table td{border:1px solid var(--edge);padding:5px 7px;vertical-align:middle;}
+.finance-table th{background:var(--paper-deep);font-family:'Noto Serif KR',serif;font-weight:700;font-size:12px;}
+.finance-table td.acc-code{width:60px;text-align:center;color:var(--sub);font-size:11.5px;white-space:nowrap;}
+.finance-table td.acc-name{width:34%;}
+.finance-table td input{
+  width:100%;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;
+  font-size:12px;font-family:'Noto Sans KR',sans-serif;text-align:right;
+}
+.finance-table td input:focus{outline:none;border-color:var(--gold);}
+.finance-actual-btn{
+  width:100%;background:var(--paper);border:1px solid var(--edge);border-radius:4px;
+  padding:4px 6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;text-align:right;
+  cursor:pointer;color:var(--ink);
+}
+.finance-actual-btn:hover{border-color:var(--gold);background:var(--gold-soft);}
+.finance-table tr.subtotal td{background:#F3ECDA;font-weight:700;}
+.finance-table tr.grandtotal td{background:var(--ink);color:var(--white);font-weight:700;}
+
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.month-grid .mcell{display:flex;flex-direction:column;gap:2px;}
+.month-grid .mcell label{font-size:11px;color:var(--sub);}
+.month-grid .mcell input{border:1px solid var(--edge);border-radius:5px;padding:5px 6px;font-size:12.5px;text-align:right;font-family:'Noto Sans KR',sans-serif;}
+.month-grid .mcell input:focus{outline:none;border-color:var(--gold);}
+.month-total{text-align:right;font-weight:700;font-size:13px;color:var(--ink);margin-top:4px;padding-top:8px;border-top:1px solid var(--edge);}
+
+.finance-row-actions{display:flex;align-items:center;gap:4px;}
+.finance-row-del{background:none;border:none;color:var(--sub);cursor:pointer;font-size:13px;padding:2px 5px;}
+.finance-row-del:hover{color:var(--maroon);}
+.finance-add-row-btn{
+  background:none;border:1px dashed var(--edge);color:var(--sub);font-size:12px;
+  padding:6px 10px;border-radius:6px;cursor:pointer;margin-top:6px;font-family:'Noto Sans KR',sans-serif;
+}
+.finance-add-row-btn:hover{border-color:var(--gold);color:var(--gold);}
+.finance-table-wrap{overflow-x:auto;}
+
+.finance-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
+.finance-print-view .fp-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;text-align:center;margin:0 0 10px;}
+.finance-print-view table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.finance-print-view th,.finance-print-view td{border:1px solid #999;padding:4px 6px;font-size:10.5px;}
+.finance-print-view th{background:#eee;font-weight:700;text-align:center;}
+.finance-print-view td.fp-num{text-align:right;}
+.finance-print-view tr.fp-subtotal td{background:#F3ECDA;font-weight:700;}
+.finance-print-view tr.fp-total td{background:#ddd;font-weight:700;}
+.finance-print-view .fp-section-title{font-family:'Noto Serif KR',serif;font-weight:700;font-size:12.5px;margin:14px 0 4px;}
+
 .line.search-hit{background:#fff3c4;border-radius:6px;}
 .line.search-hit-current{background:#ffe08a;border-radius:6px;box-shadow:inset 0 0 0 2px var(--gold);}
 .sub-label.search-hit-current{background:#ffe08a;border-radius:5px;padding:3px 8px;box-shadow:inset 0 0 0 2px var(--gold);}
@@ -461,7 +550,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -489,6 +578,17 @@ body{
   body.printing-org .org-head-actions{display:none!important;}
   body.printing-org #orgBody{display:none!important;}
   body.printing-org .org-print-view{display:block!important;}
+
+  body.printing-finance .page,body.printing-finance .page-num{display:none!important;}
+  body.printing-finance #financeOverlay{
+    display:block!important;position:static!important;background:none!important;
+    padding:0!important;overflow:visible!important;
+  }
+  body.printing-finance .finance-panel{max-width:100%!important;width:100%!important;box-shadow:none!important;border:none!important;margin:0!important;}
+  body.printing-finance .finance-head{position:static!important;border-radius:0!important;background:none!important;border-bottom:2px solid var(--ink)!important;}
+  body.printing-finance .finance-head-actions{display:none!important;}
+  body.printing-finance #financeBody{display:none!important;}
+  body.printing-finance .finance-print-view{display:block!important;}
 }
 
 .attach-on{background:var(--gold-soft)!important;color:#4a3a05!important;border:1px solid var(--gold)!important;}
@@ -624,14 +724,49 @@ body{
 </div>
 
 <div id="financeOverlay" class="hidden">
+  <div class="finance-panel">
+    <div class="finance-head">
+      <h3 id="financeTitle">💰 재정 관리</h3>
+      <div class="finance-head-actions">
+        <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
+        <button class="tbtn" onclick="saveFinanceData()">저장</button>
+        <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
+        <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
+        <button class="modal-close" onclick="closeFinancePanel()">✕</button>
+      </div>
+    </div>
+    <div class="finance-body" id="financeBody">불러오는 중…</div>
+    <div class="finance-print-view" id="financePrintView"></div>
+  </div>
+</div>
+
+<div id="newFinanceOverlay" class="hidden">
   <div class="modal-box" style="max-width:420px;">
     <div class="modal-head">
-      <h3>💰 재정 관리</h3>
-      <button class="modal-close" onclick="closeFinancePanel()">✕</button>
+      <h3>새 연도 재정 작성</h3>
+      <button class="modal-close" onclick="closeNewFinanceDialog()">✕</button>
     </div>
     <div class="modal-body">
-      <p class="dlg-note">재정 관리 기능은 준비 중입니다. 곧 내용이 추가될 예정입니다.</p>
+      <p class="dlg-note">새로 만들 연도를 정하고, 시작 방식을 골라주세요. (계정 목록은 항상 표준 계정으로 시작합니다.)</p>
+      <div class="next-grid" style="margin-bottom:14px;">
+        <div class="k">생성년도</div>
+        <div><input class="dlg-input" id="newFinanceYear" type="number" style="width:120px;"></div>
+      </div>
+      <div class="dlg-actions">
+        <button type="button" onclick="confirmNewFinance('carry')">전년도 실적을 "전년 실적"으로 이어받기</button>
+        <button type="button" onclick="confirmNewFinance('blank')">새로 작성 (숫자 없이 시작)</button>
+      </div>
     </div>
+  </div>
+</div>
+
+<div id="monthlyEntryOverlay" class="hidden">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <h3 id="monthlyEntryTitle">월별 입력</h3>
+      <button class="modal-close" onclick="closeMonthlyEntry()">✕</button>
+    </div>
+    <div class="modal-body" id="monthlyEntryBody"></div>
   </div>
 </div>
 
@@ -1217,10 +1352,440 @@ function openAttachment(pathArr, idx){
 }
 function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
 
-/* ---------- 재정 관리 (내용은 추후 추가 예정) ---------- */
-function openFinancePanel(){ document.getElementById('financeOverlay').classList.remove('hidden'); }
+/* ---------- 재정 관리 ---------- */
+function defaultFinanceAccounts(){
+  return [
+    {code:'4300', name:'Balance Forwarded (전년도이월금)', group:'income', category:'carryover', categoryLabel:'이월금'},
+    {code:'4410', name:'Shared Mission Giving (선교비)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4411', name:'Special Designated Fund (특별 지정기금)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4420', name:'Per-Capita (상회비)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4430', name:'Synod Lincoln Trails 사무총장 Benefit 지원', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4440', name:'Other Income (기타 수입)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4441', name:'Interest Income (은행 이자)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4450', name:'Mission Development Fund (선교 발전 특별기금)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4460', name:'Designated Pastoral Giving (특별 지정 목회헌금)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4470', name:'Presbyterian Disaster Assistance (PDA)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'4480', name:'Special Programs Income (특별 활동 수입)', group:'income', category:'income', categoryLabel:'수입'},
+    {code:'6003', name:'GA Per-Capita Payment (총회 상회비)', group:'expense', category:'assembly', categoryLabel:'총회/대회 상회비'},
+    {code:'6004', name:'Synod Per-Capita Payment (대회 상회비)', group:'expense', category:'assembly', categoryLabel:'총회/대회 상회비'},
+    {code:'6005', name:'ECO Mission Giving (교단내지정선교비)', group:'expense', category:'assembly', categoryLabel:'총회/대회 상회비'},
+    {code:'7001', name:'Presbytery Meeting Related Expense (노회 회의 경비)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7010', name:'Officers Meeting (임원회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7015', name:'Officers Travel & Meeting (임원 출장 및 회의)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7020', name:'Coordinating Council (실행 위원회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7025', name:'Board of Trustee (법인 이사회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7030', name:'Nominating Committee (공천 위원회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7035', name:'Special Designated Fund (특별 지정기금지출)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7040', name:'Designated Pastoral Expense (특별 목회/경조사비)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7050', name:'PJC (사법 전권 위원회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7055', name:'Representation, Policy & Record (대표 및 정책 기록)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7060', name:'Committee on Ministry (목회 위원회)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7070', name:'Mission & Church Development (선교 및 교회 발전)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7075', name:'Education & Preparation for Ministry (교육 및 목사후보생)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7080', name:'Designated Mission Giving (특별 지정 선교비)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7085', name:'Presbyterian Disaster Assistance (PDA)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'7095', name:'Special Program Expense (특별활동경비)', group:'expense', category:'committee', categoryLabel:'위원회 및 노회 운영'},
+    {code:'8010', name:'EP Activity Fund (사무총장활동비)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8011', name:'Secretary Activity Fund (정서기활동비)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8015', name:'Treasurer (재무)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8020', name:'Secretary Work Expenses (사무보조)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8021', name:'Professional Fees/Dues (보험료 및 회계 감사비)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8030', name:'Printing Expense (인쇄비)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8031', name:'Office Rental (사무실임대료)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8032', name:'Telephone/Webpage (전화료/웹페이지관리)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8033', name:'Postage (우표)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8034', name:'Office Supplies (사무실사무용품)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8035', name:'Office Equipment (사무기/비품)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'8037', name:'Special Expenses (기타 지출)', group:'expense', category:'office', categoryLabel:'사무실 운영비'},
+    {code:'9011', name:'EP Salary (사무총장사례비)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9012', name:'EP Housing Allowance (사무총장 주택비)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9020', name:'EP Retirement (사무총장은퇴 연금)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9021', name:'Medical Ins. (사무총장의료보험)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9030', name:'EDI State Tax / FUTA / 각종 세금', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9510', name:'EP Travel & Meeting (사무총장출장비)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9520', name:'EP Continuing Education (사무총장연장교육비)', group:'expense', category:'ep', categoryLabel:'사무총장 (EP)'},
+    {code:'9810', name:'General Reserve (일반 예비비)', group:'expense', category:'reserve', categoryLabel:'적립 및 이월'},
+    {code:'9811', name:'Special Loan (특별 융자)', group:'expense', category:'reserve', categoryLabel:'적립 및 이월'},
+    {code:'9812', name:'Special Contingency (차기년도이월금)', group:'expense', category:'reserve', categoryLabel:'적립 및 이월'},
+    {code:'9990', name:'CD Account Reserve (특별구좌)', group:'expense', category:'reserve', categoryLabel:'적립 및 이월'}
+  ];
+}
+
+function blankFinance(year){
+  var accounts = defaultFinanceAccounts().map(function(a){
+    return {
+      code:a.code, name:a.name, group:a.group, category:a.category, categoryLabel:a.categoryLabel,
+      priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
+    };
+  });
+  return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [] };
+}
+
+var financeState = null;
+var financeLoaded = false;
+
+function finAccountActual(acc){
+  return (acc.monthly||[]).reduce(function(s,v){ return s + (parseFloat(v)||0); }, 0);
+}
+function finComputeTotals(fin){
+  var totalRevenue=0, carryForward=0, totalExpense=0, totalBudgetRevenue=0, totalBudgetExpense=0;
+  fin.accounts.forEach(function(a){
+    var actual = finAccountActual(a);
+    var budget = parseFloat(a.budget)||0;
+    if(a.group==='income'){
+      if(a.category==='carryover'){ carryForward += actual; }
+      else { totalRevenue += actual; totalBudgetRevenue += budget; }
+    } else {
+      totalExpense += actual; totalBudgetExpense += budget;
+    }
+  });
+  var totalIncomeRevenue = totalRevenue + carryForward;
+  return {
+    totalRevenue:totalRevenue, carryForward:carryForward, totalIncomeRevenue:totalIncomeRevenue,
+    totalExpense:totalExpense, balance:totalIncomeRevenue-totalExpense,
+    totalBudgetRevenue:totalBudgetRevenue, totalBudgetExpense:totalBudgetExpense
+  };
+}
+function fmtMoney(n){
+  n = parseFloat(n)||0;
+  var neg = n<0; n = Math.abs(n);
+  var s = n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return (neg?'-':'')+'$'+s;
+}
+function getFinancePath(path){
+  var o = financeState;
+  for(var i=0;i<path.length;i++){ if(o==null) return o; o = o[path[i]]; }
+  return o;
+}
+function setFinanceField(path, value){
+  var parent = getFinancePath(path.slice(0,-1));
+  if(parent==null) return;
+  parent[path[path.length-1]] = value;
+  markFinanceDirty();
+}
+function markFinanceDirty(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
+function markFinanceClean(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
+
+function openFinancePanel(){
+  document.getElementById('financeOverlay').classList.remove('hidden');
+  if(!financeLoaded){ loadFinanceData(); } else { renderFinanceBody(); }
+}
 function closeFinancePanel(){ document.getElementById('financeOverlay').classList.add('hidden'); }
 document.getElementById('financeOverlay').addEventListener('click', function(e){ if(e.target.id==='financeOverlay') closeFinancePanel(); });
+
+function loadFinanceData(){
+  var body = document.getElementById('financeBody');
+  body.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
+  if(!isConfigured()){ body.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
+  jsonp({action:'getFinance'}).then(function(res){
+    if(res && res.ok){
+      financeState = res.finance ? res.finance : blankFinance(new Date().getFullYear());
+      financeLoaded = true;
+      markFinanceClean();
+      renderFinanceBody();
+    } else {
+      body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+    }
+  }).catch(function(err){
+    body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+  });
+}
+
+function saveFinanceData(){
+  if(!financeState || !isConfigured()) return;
+  var badge = document.getElementById('financeSaveBadge');
+  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
+  postToScript({action:'saveFinance', year: financeState.year, finance: financeState}).then(function(){
+    markFinanceClean();
+  }).catch(function(err){
+    console.error(err);
+    badge.textContent='저장 실패'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse');
+    alert('저장 중 오류가 발생했습니다.');
+  });
+}
+
+function openNewFinanceDialog(){
+  var suggested = (financeState && financeState.year ? parseInt(financeState.year,10) : new Date().getFullYear()) + 1;
+  document.getElementById('newFinanceYear').value = suggested;
+  document.getElementById('newFinanceOverlay').classList.remove('hidden');
+}
+function closeNewFinanceDialog(){ document.getElementById('newFinanceOverlay').classList.add('hidden'); }
+function confirmNewFinance(mode){
+  var year = parseInt(document.getElementById('newFinanceYear').value, 10);
+  if(!year){ alert('생성년도를 입력해주세요.'); return; }
+  var fresh = blankFinance(year);
+  if(mode==='carry' && financeState){
+    fresh.accounts.forEach(function(a){
+      var prev = financeState.accounts.find(function(p){ return p.code===a.code; });
+      if(prev){ a.priorActual = finAccountActual(prev); }
+    });
+    fresh.openingBalance = finComputeTotals(financeState).balance;
+    fresh.perCapita = deepClone(financeState.perCapita||[]).map(function(p){
+      return {church:p.church, members:p.members, perCapitaRate:p.perCapitaRate, missionRate:p.missionRate, paidDate:'', memo:''};
+    });
+  }
+  financeState = fresh;
+  financeLoaded = true;
+  closeNewFinanceDialog();
+  renderFinanceBody();
+  markFinanceDirty();
+  saveFinanceData();
+}
+
+function renderFinanceBody(){
+  var fin = financeState;
+  document.getElementById('financeTitle').textContent = '💰 '+esc(fin.year)+'년 재정 관리';
+  var totals = finComputeTotals(fin);
+  var out = '';
+
+  out += '<div class="finance-summary">';
+  out += '<div class="finance-summary-card income"><div class="lbl">총 수입 (Total Revenues)</div><div class="val">'+fmtMoney(totals.totalRevenue)+'</div></div>';
+  out += '<div class="finance-summary-card"><div class="lbl">전년도 이월금</div><div class="val">'+fmtMoney(totals.carryForward)+'</div></div>';
+  out += '<div class="finance-summary-card"><div class="lbl">총 수입 합계 (이월금 포함)</div><div class="val">'+fmtMoney(totals.totalIncomeRevenue)+'</div></div>';
+  out += '<div class="finance-summary-card expense"><div class="lbl">총 지출</div><div class="val">'+fmtMoney(totals.totalExpense)+'</div></div>';
+  out += '</div>';
+  out += '<div class="finance-summary" style="grid-template-columns:1fr;margin-bottom:24px;">';
+  out += '<div class="finance-summary-card balance"><div class="lbl">잔액 (Balance)</div><div class="val">'+fmtMoney(totals.balance)+'</div></div>';
+  out += '</div>';
+
+  out += renderFinanceAccountSection('수입 (Income)', 'income');
+  out += renderFinanceAccountSection('지출 (Expense)', 'expense');
+  out += renderFinanceLedgerSection();
+  out += renderFinancePerCapitaSection();
+
+  document.getElementById('financeBody').innerHTML = out;
+}
+
+function renderFinanceAccountSection(title, group){
+  var fin = financeState;
+  var accounts = fin.accounts.filter(function(a){ return a.group===group; });
+  var categories = [];
+  accounts.forEach(function(a){ if(categories.indexOf(a.category)===-1) categories.push(a.category); });
+
+  var out = '<div class="finance-section"><h4>'+esc(title)+'</h4>';
+  out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
+  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
+  out += '</tr></thead><tbody>';
+
+  categories.forEach(function(cat){
+    var catAccounts = accounts.filter(function(a){ return a.category===cat; });
+    if(cat!=='carryover'){
+      out += '<tr><td colspan="5" class="finance-group-label">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
+    }
+    var catSubtotal=0, catBudgetSubtotal=0;
+    catAccounts.forEach(function(a){
+      var idx = fin.accounts.indexOf(a);
+      var actual = finAccountActual(a);
+      catSubtotal += actual; catBudgetSubtotal += (parseFloat(a.budget)||0);
+      out += '<tr>';
+      out += '<td class="acc-code">'+esc(a.code)+'</td>';
+      out += '<td class="acc-name">'+esc(a.name)+'</td>';
+      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(a.priorActual)+'"></td>';
+      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(a.budget)+'"></td>';
+      out += '<td><button type="button" class="finance-actual-btn js-open-monthly" data-idx="'+idx+'">'+fmtMoney(actual)+'</button></td>';
+      out += '</tr>';
+    });
+    if(cat!=='carryover' && catAccounts.length>1){
+      out += '<tr class="subtotal"><td colspan="2" style="text-align:right;">소계</td><td></td><td style="text-align:right;">'+fmtMoney(catBudgetSubtotal)+'</td><td style="text-align:right;">'+fmtMoney(catSubtotal)+'</td></tr>';
+    }
+  });
+
+  out += '<tr class="grandtotal"><td colspan="2">'+(group==='income'?'Total Revenues':'Total Expenses')+'</td><td></td>';
+  var grandBudget = group==='income' ? finComputeTotals(fin).totalBudgetRevenue : finComputeTotals(fin).totalBudgetExpense;
+  var grandActual = group==='income' ? finComputeTotals(fin).totalRevenue : finComputeTotals(fin).totalExpense;
+  out += '<td style="text-align:right;">'+fmtMoney(grandBudget)+'</td><td style="text-align:right;">'+fmtMoney(grandActual)+'</td></tr>';
+  out += '</tbody></table></div></div>';
+  return out;
+}
+
+function renderFinanceLedgerSection(){
+  var fin = financeState;
+  var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
+  out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></div>';
+  out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
+  out += '<th style="width:90px;">날짜</th><th>내용</th><th style="width:100px;">출금</th><th style="width:100px;">입금</th><th style="width:110px;">잔액</th><th>메모</th><th style="width:34px;"></th>';
+  out += '</tr></thead><tbody>';
+  var running = parseFloat(fin.openingBalance)||0;
+  fin.ledger.forEach(function(row, idx){
+    running += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
+    out += '<tr>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'date']))+'" value="'+esc(row.date)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'desc']))+'" value="'+esc(row.desc)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(row.debit)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(row.deposit)+'"></td>';
+    out += '<td style="text-align:right;">'+fmtMoney(running)+'</td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
+    out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
+    out += '</tr>';
+  });
+  out += '</tbody></table></div>';
+  out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="ledger">+ 거래 추가</button>';
+  out += '</div>';
+  return out;
+}
+
+function renderFinancePerCapitaSection(){
+  var fin = financeState;
+  var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
+  out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
+  out += '<th>교회명</th><th style="width:70px;">교인수</th><th style="width:90px;">상회비율</th><th style="width:90px;">선교비율</th><th style="width:110px;">합계</th><th style="width:100px;">완납일</th><th>메모</th><th style="width:34px;"></th>';
+  out += '</tr></thead><tbody>';
+  var grandTotal=0, memberTotal=0;
+  fin.perCapita.forEach(function(row, idx){
+    var members = parseFloat(row.members)||0;
+    var rate1 = parseFloat(row.perCapitaRate)||0, rate2 = parseFloat(row.missionRate)||0;
+    var total = members*(rate1+rate2);
+    grandTotal += total; memberTotal += members;
+    out += '<tr>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'church']))+'" value="'+esc(row.church)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'members']))+'" value="'+esc(row.members)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'perCapitaRate']))+'" value="'+esc(row.perCapitaRate)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'missionRate']))+'" value="'+esc(row.missionRate)+'"></td>';
+    out += '<td style="text-align:right;">'+fmtMoney(total)+'</td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
+    out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['perCapita']))+'" data-idx="'+idx+'">×</button></td>';
+    out += '</tr>';
+  });
+  out += '<tr class="subtotal"><td>합계</td><td style="text-align:right;">'+memberTotal+'명</td><td colspan="2"></td><td style="text-align:right;">'+fmtMoney(grandTotal)+'</td><td colspan="2"></td><td></td></tr>';
+  out += '</tbody></table></div>';
+  out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="percap">+ 교회 추가</button>';
+  out += '</div>';
+  return out;
+}
+
+function openMonthlyEntry(idx){
+  var fin = financeState;
+  var acc = fin.accounts[idx];
+  document.getElementById('monthlyEntryTitle').textContent = acc.code+' '+acc.name;
+  var monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  var out = '<div class="month-grid">';
+  monthNames.forEach(function(mn, mi){
+    out += '<div class="mcell"><label>'+mn+'</label><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'monthly',mi]))+'" value="'+esc(acc.monthly[mi])+'"></div>';
+  });
+  out += '</div>';
+  out += '<div class="month-total" id="monthlyEntryTotal">합계: '+fmtMoney(finAccountActual(acc))+'</div>';
+  document.getElementById('monthlyEntryBody').innerHTML = out;
+  document.getElementById('monthlyEntryOverlay').classList.remove('hidden');
+}
+function closeMonthlyEntry(){
+  document.getElementById('monthlyEntryOverlay').classList.add('hidden');
+  if(financeState) renderFinanceBody();
+}
+document.getElementById('monthlyEntryOverlay').addEventListener('input', function(e){
+  if(!e.target.classList.contains('fin-field')) return;
+  var path = JSON.parse(e.target.dataset.path);
+  setFinanceField(path, e.target.value);
+  var acc = financeState.accounts[path[1]];
+  var totalEl = document.getElementById('monthlyEntryTotal');
+  if(totalEl) totalEl.textContent = '합계: '+fmtMoney(finAccountActual(acc));
+});
+document.getElementById('monthlyEntryOverlay').addEventListener('click', function(e){ if(e.target.id==='monthlyEntryOverlay') closeMonthlyEntry(); });
+document.getElementById('newFinanceOverlay').addEventListener('click', function(e){ if(e.target.id==='newFinanceOverlay') closeNewFinanceDialog(); });
+
+function onFinanceClick(e){
+  var delBtn = e.target.closest('.js-fin-row-del');
+  if(delBtn){
+    var listPath = JSON.parse(delBtn.dataset.listpath);
+    var idx = parseInt(delBtn.dataset.idx,10);
+    getFinancePath(listPath).splice(idx,1);
+    markFinanceDirty(); renderFinanceBody();
+    return;
+  }
+  var addBtn = e.target.closest('.js-fin-add-row');
+  if(addBtn){
+    var kind = addBtn.dataset.kind;
+    if(kind==='ledger'){ financeState.ledger.push({date:'', desc:'', debit:0, deposit:0, memo:''}); }
+    else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, perCapitaRate:34, missionRate:15, paidDate:'', memo:''}); }
+    markFinanceDirty(); renderFinanceBody();
+    return;
+  }
+  var monthlyBtn = e.target.closest('.js-open-monthly');
+  if(monthlyBtn){ openMonthlyEntry(parseInt(monthlyBtn.dataset.idx,10)); return; }
+}
+function onFinanceInput(e){
+  if(e.target.classList.contains('fin-field')){
+    setFinanceField(JSON.parse(e.target.dataset.path), e.target.value);
+  }
+}
+document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
+document.getElementById('financeOverlay').addEventListener('input', onFinanceInput);
+
+/* ---------- 재정 인쇄 ---------- */
+function printFinancePanel(){
+  if(!financeState) return;
+  buildFinancePrintView();
+  document.body.classList.add('printing-finance');
+  var printPageStyle = document.createElement('style');
+  printPageStyle.id = 'financePrintPageStyle';
+  printPageStyle.textContent = '@page{ size: landscape; margin: 0.4in; }';
+  document.head.appendChild(printPageStyle);
+  window.print();
+}
+window.addEventListener('afterprint', function(){
+  document.body.classList.remove('printing-finance');
+  var s = document.getElementById('financePrintPageStyle');
+  if(s) s.parentNode.removeChild(s);
+  var v = document.getElementById('financePrintView');
+  if(v) v.innerHTML='';
+});
+
+function buildFinancePrintView(){
+  var fin = financeState;
+  var totals = finComputeTotals(fin);
+  var out = '<div class="fp-title">MIDWEST KOREAN AMERICAN PRESBYTERY<br>('+esc(fin.year)+' INCOME/EXPENSE BUDGET)</div>';
+
+  function accountRows(group){
+    var accounts = fin.accounts.filter(function(a){ return a.group===group; });
+    var categories = [];
+    accounts.forEach(function(a){ if(categories.indexOf(a.category)===-1) categories.push(a.category); });
+    var rows = '';
+    categories.forEach(function(cat){
+      var catAccounts = accounts.filter(function(a){ return a.category===cat; });
+      if(cat!=='carryover'){
+        rows += '<tr><td colspan="5" style="background:#f5f5f5;font-weight:700;">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
+      }
+      var subtotal=0, subBudget=0;
+      catAccounts.forEach(function(a){
+        var actual = finAccountActual(a);
+        subtotal += actual; subBudget += (parseFloat(a.budget)||0);
+        rows += '<tr><td>'+esc(a.code)+'</td><td>'+esc(a.name)+'</td><td class="fp-num">'+fmtMoney(a.priorActual)+'</td><td class="fp-num">'+fmtMoney(a.budget)+'</td><td class="fp-num">'+fmtMoney(actual)+'</td></tr>';
+      });
+      if(cat!=='carryover' && catAccounts.length>1){
+        rows += '<tr class="fp-subtotal"><td colspan="2">소계</td><td></td><td class="fp-num">'+fmtMoney(subBudget)+'</td><td class="fp-num">'+fmtMoney(subtotal)+'</td></tr>';
+      }
+    });
+    return rows;
+  }
+
+  out += '<div class="fp-section-title">수입 (Income)</div>';
+  out += '<table><thead><tr><th>계정</th><th>내용</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += accountRows('income');
+  out += '<tr class="fp-total"><td colspan="4">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalRevenue)+'</td></tr>';
+  out += '<tr class="fp-total"><td colspan="4">Total Income Revenues (이월금 포함)</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
+  out += '</tbody></table>';
+
+  out += '<div class="fp-section-title">지출 (Expense)</div>';
+  out += '<table><thead><tr><th>계정</th><th>내용</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += accountRows('expense');
+  out += '<tr class="fp-total"><td colspan="4">Total Expenses</td><td class="fp-num">'+fmtMoney(totals.totalExpense)+'</td></tr>';
+  out += '</tbody></table>';
+
+  out += '<div class="fp-section-title">잔액 (Balance): '+fmtMoney(totals.balance)+'</div>';
+
+  if(fin.perCapita && fin.perCapita.length){
+    out += '<div class="fp-section-title">교회별 상회비 현황</div>';
+    out += '<table><thead><tr><th>교회명</th><th>교인수</th><th>상회비</th><th>선교비</th><th>합계</th><th>완납일</th></tr></thead><tbody>';
+    fin.perCapita.forEach(function(row){
+      var members = parseFloat(row.members)||0;
+      var r1=parseFloat(row.perCapitaRate)||0, r2=parseFloat(row.missionRate)||0;
+      out += '<tr><td>'+esc(row.church)+'</td><td class="fp-num">'+members+'</td><td class="fp-num">'+fmtMoney(members*r1)+'</td><td class="fp-num">'+fmtMoney(members*r2)+'</td><td class="fp-num">'+fmtMoney(members*(r1+r2))+'</td><td>'+esc(row.paidDate)+'</td></tr>';
+    });
+    out += '</tbody></table>';
+  }
+
+  document.getElementById('financePrintView').innerHTML = out;
+}
 
 /* ---------- 회순 오른쪽 타이틀: 저장된 회의 목록 + 검색 드롭다운 (아래에서 정의) ---------- */
 
@@ -1272,9 +1837,14 @@ document.getElementById('newMeetingOverlay').addEventListener('click', function(
 document.getElementById('saveChoiceOverlay').addEventListener('click', function(e){ if(e.target.id==='saveChoiceOverlay') closeSaveChoiceDialog(); });
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    closeModal(); closeFinancePanel(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
+    closeModal(); closeNewMeetingDialog(); closeSaveChoiceDialog(); closeMeetingMenu();
     var newOrgOpen = !document.getElementById('newOrgOverlay').classList.contains('hidden');
     if(newOrgOpen){ closeNewOrgDialog(); } else { closeOrgPanel(); }
+    var newFinanceOpen = !document.getElementById('newFinanceOverlay').classList.contains('hidden');
+    var monthlyOpen = !document.getElementById('monthlyEntryOverlay').classList.contains('hidden');
+    if(newFinanceOpen){ closeNewFinanceDialog(); }
+    else if(monthlyOpen){ closeMonthlyEntry(); }
+    else { closeFinancePanel(); }
   }
 });
 
