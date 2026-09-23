@@ -481,7 +481,10 @@ body{
   width:100%;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;
   font-size:12px;font-family:'Noto Sans KR',sans-serif;text-align:right;
 }
-.finance-table td input:focus{outline:none;border-color:var(--gold);}
+.fin-field:focus{
+  outline:none;border-color:var(--gold)!important;background:#FFF6DE!important;
+  box-shadow:0 0 0 2px rgba(191,155,66,.35);
+}
 .finance-actual-btn{
   width:100%;background:var(--paper);border:1px solid var(--edge);border-radius:4px;
   padding:4px 6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;text-align:right;
@@ -1711,6 +1714,14 @@ function onFinanceInput(e){
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
 document.getElementById('financeOverlay').addEventListener('input', onFinanceInput);
+
+/* 재정 입력칸을 클릭(포커스)하면 내용을 전체 선택해서 바로 새 값을 입력하거나
+   고칠 수 있게 합니다. (focus는 버블링이 안 되므로 focusin으로 위임합니다) */
+function selectFinFieldOnFocus(e){
+  if(e.target.classList && e.target.classList.contains('fin-field')) e.target.select();
+}
+document.getElementById('financeOverlay').addEventListener('focusin', selectFinFieldOnFocus);
+document.getElementById('monthlyEntryOverlay').addEventListener('focusin', selectFinFieldOnFocus);
 
 /* ---------- 재정 인쇄 ---------- */
 function printFinancePanel(){
