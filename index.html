@@ -474,8 +474,11 @@ body{
 }
 .finance-group-label{
   font-family:'Noto Serif KR',serif;font-weight:700;font-size:12.5px;color:var(--maroon);
-  background:var(--paper-deep);padding:6px 10px;margin:10px 0 4px;border-radius:5px;
+  background:var(--paper-deep);padding:0;margin:10px 0 4px;border-radius:5px;
+}
+.finance-group-label-row{
   display:flex;align-items:center;justify-content:space-between;
+  padding:6px 10px;
 }
 .finance-add-account-btn{
   background:var(--ink);color:var(--white);border:none;border-radius:5px;
@@ -1602,8 +1605,8 @@ function renderFinanceAccountSection(title, group){
     var showGroupLabel = cat!=='carryover' && !(group==='income' && cat==='income');
     if(showGroupLabel){
       var catLabel = catAccounts[0].categoryLabel||'';
-      out += '<tr><td colspan="6" class="finance-group-label"><span>'+esc(catLabel)+'</span>'+
-        '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\''+esc(group)+'\',\''+esc(cat)+'\',\''+esc(catLabel)+'\')" title="계정 추가">+</button></td></tr>';
+      out += '<tr><td colspan="6" class="finance-group-label"><div class="finance-group-label-row"><span>'+esc(catLabel)+'</span>'+
+        '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\''+esc(group)+'\',\''+esc(cat)+'\',\''+esc(catLabel)+'\')" title="계정 추가">+</button></div></td></tr>';
     }
     var catSubtotal=0, catBudgetSubtotal=0;
     catAccounts.forEach(function(a){
