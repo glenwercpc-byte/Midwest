@@ -510,6 +510,9 @@ body{
 .fin-actual-display{width:100%;text-align:right;padding:4px 6px;font-size:12px;color:var(--ink);}
 .finance-table tr.subtotal td{background:#F3ECDA;font-weight:700;}
 .finance-table tr.grandtotal td{background:var(--ink);color:var(--white);font-weight:700;}
+.finance-table tr.carryover-row td{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);}
+.finance-table tr.carryover-row td:first-child{border-left:2px solid var(--ink);}
+.finance-table tr.carryover-row td:last-child{border-right:2px solid var(--ink);}
 
 .month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
 .month-grid .mcell{display:flex;flex-direction:column;gap:1px;min-width:0;}
@@ -1481,13 +1484,13 @@ function finAccountActual(acc){
 }
 function finComputeTotals(fin){
   var totalRevenue=0, carryForward=0, totalExpense=0, totalBudgetRevenue=0, totalBudgetExpense=0;
-  var totalPriorRevenue=0, totalPriorExpense=0;
+  var totalPriorRevenue=0, totalPriorExpense=0, carryForwardBudget=0, carryForwardPrior=0;
   fin.accounts.forEach(function(a){
     var actual = finAccountActual(a);
     var budget = parseFloat(a.budget)||0;
     var prior = parseFloat(a.priorActual)||0;
     if(a.group==='income'){
-      if(a.category==='carryover'){ carryForward += actual; }
+      if(a.category==='carryover'){ carryForward += actual; carryForwardBudget += budget; carryForwardPrior += prior; }
       else { totalRevenue += actual; totalBudgetRevenue += budget; totalPriorRevenue += prior; }
     } else {
       totalExpense += actual; totalBudgetExpense += budget; totalPriorExpense += prior;
@@ -1498,7 +1501,8 @@ function finComputeTotals(fin){
     totalRevenue:totalRevenue, carryForward:carryForward, totalIncomeRevenue:totalIncomeRevenue,
     totalExpense:totalExpense, balance:totalIncomeRevenue-totalExpense,
     totalBudgetRevenue:totalBudgetRevenue, totalBudgetExpense:totalBudgetExpense,
-    totalPriorRevenue:totalPriorRevenue, totalPriorExpense:totalPriorExpense
+    totalPriorRevenue:totalPriorRevenue, totalPriorExpense:totalPriorExpense,
+    carryForwardBudget:carryForwardBudget, carryForwardPrior:carryForwardPrior
   };
 }
 function fmtMoney(n){
@@ -1593,13 +1597,11 @@ function renderFinanceBody(){
   var totals = finComputeTotals(fin);
   var out = '';
 
-  out += '<div class="finance-summary">';
+  out += '<div class="finance-summary" style="grid-template-columns:repeat(5,1fr);margin-bottom:24px;">';
   out += '<div class="finance-summary-card income"><div class="lbl">총 수입 (Total Revenues)</div><div class="val">'+fmtMoney(totals.totalRevenue)+'</div></div>';
   out += '<div class="finance-summary-card"><div class="lbl">전년도 이월금</div><div class="val">'+fmtMoney(totals.carryForward)+'</div></div>';
   out += '<div class="finance-summary-card"><div class="lbl">총 수입 합계 (이월금 포함)</div><div class="val">'+fmtMoney(totals.totalIncomeRevenue)+'</div></div>';
   out += '<div class="finance-summary-card expense"><div class="lbl">총 지출</div><div class="val">'+fmtMoney(totals.totalExpense)+'</div></div>';
-  out += '</div>';
-  out += '<div class="finance-summary" style="grid-template-columns:1fr;margin-bottom:24px;">';
   out += '<div class="finance-summary-card balance"><div class="lbl">잔액 (Balance)</div><div class="val">'+fmtMoney(totals.balance)+'</div></div>';
   out += '</div>';
 
@@ -1641,7 +1643,7 @@ function renderFinanceAccountSection(title, group){
       var idx = fin.accounts.indexOf(a);
       var actual = finAccountActual(a);
       catSubtotal += actual; catBudgetSubtotal += (parseFloat(a.budget)||0); catPriorSubtotal += (parseFloat(a.priorActual)||0);
-      out += '<tr>';
+      out += '<tr'+(a.category==='carryover'?' class="carryover-row"':'')+'>';
       out += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+((a.code||'').trim()===''?'번호 입력':esc(a.code))+'</button></td>';
       out += '<td class="acc-name"><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'name']))+'" value="'+esc(a.name)+'"></td>';
       out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
@@ -1657,9 +1659,9 @@ function renderFinanceAccountSection(title, group){
 
   var totals = finComputeTotals(fin);
   out += '<tr class="grandtotal"><td colspan="3">'+(group==='income'?'Total Revenues':'Total Expenses')+'</td>';
-  var grandPrior = group==='income' ? totals.totalPriorRevenue : totals.totalPriorExpense;
-  var grandBudget = group==='income' ? totals.totalBudgetRevenue : totals.totalBudgetExpense;
-  var grandActual = group==='income' ? totals.totalRevenue : totals.totalExpense;
+  var grandPrior = group==='income' ? (totals.totalPriorRevenue+totals.carryForwardPrior) : totals.totalPriorExpense;
+  var grandBudget = group==='income' ? (totals.totalBudgetRevenue+totals.carryForwardBudget) : totals.totalBudgetExpense;
+  var grandActual = group==='income' ? totals.totalIncomeRevenue : totals.totalExpense;
   out += '<td style="text-align:right;">'+fmtMoney(grandPrior)+'</td><td style="text-align:right;">'+fmtMoney(grandBudget)+'</td><td style="text-align:right;">'+fmtMoney(grandActual)+'</td></tr>';
   out += '</tbody></table></div></div>';
   return out;
@@ -1910,8 +1912,7 @@ function buildFinancePrintView(){
   out += '<div class="fp-section-title">수입 (Income)</div>';
   out += '<table><thead><tr><th>계정</th><th>내용</th><th>Memo</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
   out += accountRows('income');
-  out += '<tr class="fp-total"><td colspan="3">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalPriorRevenue)+'</td><td class="fp-num">'+fmtMoney(totals.totalBudgetRevenue)+'</td><td class="fp-num">'+fmtMoney(totals.totalRevenue)+'</td></tr>';
-  out += '<tr class="fp-total"><td colspan="5">Total Income Revenues (이월금 포함)</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
+  out += '<tr class="fp-total"><td colspan="3">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalPriorRevenue+totals.carryForwardPrior)+'</td><td class="fp-num">'+fmtMoney(totals.totalBudgetRevenue+totals.carryForwardBudget)+'</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
   out += '</tbody></table>';
 
   out += '<div class="fp-section-title">지출 (Expense)</div>';
