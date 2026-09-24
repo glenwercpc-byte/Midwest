@@ -1614,7 +1614,7 @@ function renderFinanceAccountSection(title, group){
       var actual = finAccountActual(a);
       catSubtotal += actual; catBudgetSubtotal += (parseFloat(a.budget)||0);
       out += '<tr>';
-      out += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+esc(a.code)+'</button></td>';
+      out += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+((a.code||'').trim()===''?'번호 입력':esc(a.code))+'</button></td>';
       out += '<td class="acc-name">'+esc(a.name)+'</td>';
       out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
       out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(fmtMoney(a.priorActual))+'"></td>';
@@ -1764,7 +1764,26 @@ function onFinanceClick(e){
     return;
   }
   var monthlyBtn = e.target.closest('.js-open-monthly');
-  if(monthlyBtn){ openMonthlyEntry(parseInt(monthlyBtn.dataset.idx,10)); return; }
+  if(monthlyBtn){
+    var idx = parseInt(monthlyBtn.dataset.idx,10);
+    var acc = financeState.accounts[idx];
+    if((acc.code||'').trim()===''){
+      var wantsEntry = confirm('새로 추가된 계정입니다.\n\n번호를 입력하시려면 "확인"을, 이 계정을 삭제하시려면 "취소"를 눌러주세요.');
+      if(!wantsEntry){
+        financeState.accounts.splice(idx,1);
+        markFinanceDirty(); renderFinanceBody();
+        return;
+      }
+      var code = prompt('계정 번호를 입력하세요:', '');
+      if(code===null || code.trim()===''){ return; } // 빈 채로 두면 다음에 다시 시도할 수 있습니다.
+      acc.code = code.trim();
+      var name = prompt('계정 내용(이름)을 입력하세요:', acc.name||'');
+      if(name!==null && name.trim()!==''){ acc.name = name.trim(); }
+      markFinanceDirty(); renderFinanceBody();
+      return;
+    }
+    openMonthlyEntry(idx);
+  }
 }
 /** "$1,234.56" 처럼 화면에 표시된 금액에서 숫자만 뽑아냅니다. */
 function parseMoneyInput(v){
