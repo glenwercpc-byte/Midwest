@@ -325,6 +325,10 @@ body{
   border-radius:8px 8px 0 0;
 }
 .modal-head h3{font-family:'Noto Serif KR',serif;font-size:15px;margin:0;color:var(--ink);}
+.modal-head-actions{display:flex;align-items:center;gap:8px;}
+.modal-head-actions .savebadge{color:var(--ink-soft)!important;font-weight:600;font-size:11.5px;}
+.modal-head-actions .tbtn{background:var(--ink);color:var(--white);border:1px solid var(--ink);font-weight:600;padding:6px 12px;font-size:12.5px;}
+.modal-head-actions .tbtn:hover{background:var(--ink-soft);border-color:var(--ink-soft);}
 .modal-close{
   background:var(--ink);color:var(--white);border:none;border-radius:50%;
   width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;
@@ -466,16 +470,30 @@ body{
 .finance-section h4{
   font-family:'Noto Serif KR',serif;font-size:15px;color:var(--ink);
   border-bottom:2px solid var(--ink);padding-bottom:6px;margin:0 0 10px;
+  display:flex;align-items:center;justify-content:space-between;
 }
 .finance-group-label{
   font-family:'Noto Serif KR',serif;font-weight:700;font-size:12.5px;color:var(--maroon);
   background:var(--paper-deep);padding:6px 10px;margin:10px 0 4px;border-radius:5px;
+  display:flex;align-items:center;justify-content:space-between;
 }
+.finance-add-account-btn{
+  background:var(--ink);color:var(--white);border:none;border-radius:5px;
+  width:22px;height:22px;line-height:1;font-size:14px;font-weight:700;cursor:pointer;
+  flex:0 0 auto;
+}
+.finance-add-account-btn:hover{background:var(--gold);}
 
 .finance-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
 .finance-table th,.finance-table td{border:1px solid var(--edge);padding:5px 7px;vertical-align:middle;}
 .finance-table th{background:var(--paper-deep);font-family:'Noto Serif KR',serif;font-weight:700;font-size:12px;}
-.finance-table td.acc-code{width:60px;text-align:center;color:var(--sub);font-size:11.5px;white-space:nowrap;}
+.finance-table td.acc-code{width:60px;padding:0;}
+.finance-acccode-btn{
+  width:100%;height:100%;background:none;border:none;color:var(--maroon);
+  font-size:11.5px;font-weight:700;white-space:nowrap;padding:5px 7px;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;text-decoration:underline;text-underline-offset:2px;
+}
+.finance-acccode-btn:hover{background:var(--gold-soft);color:var(--ink);}
 .finance-table td.acc-name{width:34%;}
 .finance-table td input{
   width:100%;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;
@@ -485,19 +503,14 @@ body{
   outline:none;border-color:var(--gold)!important;background:#FFF6DE!important;
   box-shadow:0 0 0 2px rgba(191,155,66,.35);
 }
-.finance-actual-btn{
-  width:100%;background:var(--paper);border:1px solid var(--edge);border-radius:4px;
-  padding:4px 6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;text-align:right;
-  cursor:pointer;color:var(--ink);
-}
-.finance-actual-btn:hover{border-color:var(--gold);background:var(--gold-soft);}
+.fin-actual-display{width:100%;text-align:right;padding:4px 6px;font-size:12px;color:var(--ink);}
 .finance-table tr.subtotal td{background:#F3ECDA;font-weight:700;}
 .finance-table tr.grandtotal td{background:var(--ink);color:var(--white);font-weight:700;}
 
-.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
-.month-grid .mcell{display:flex;flex-direction:column;gap:2px;}
-.month-grid .mcell label{font-size:11px;color:var(--sub);}
-.month-grid .mcell input{border:1px solid var(--edge);border-radius:5px;padding:5px 6px;font-size:12.5px;text-align:right;font-family:'Noto Sans KR',sans-serif;}
+.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;}
+.month-grid .mcell{display:flex;flex-direction:column;gap:1px;}
+.month-grid .mcell label{font-size:9.5px;color:var(--sub);}
+.month-grid .mcell input{border:1px solid var(--edge);border-radius:4px;padding:2px 3px;font-size:10.5px;text-align:right;font-family:'Noto Sans KR',sans-serif;}
 .month-grid .mcell input:focus{outline:none;border-color:var(--gold);}
 .month-total{text-align:right;font-weight:700;font-size:13px;color:var(--ink);margin-top:4px;padding-top:8px;border-top:1px solid var(--edge);}
 
@@ -767,7 +780,11 @@ body{
   <div class="modal-box" style="max-width:480px;">
     <div class="modal-head">
       <h3 id="monthlyEntryTitle">월별 입력</h3>
-      <button class="modal-close" onclick="closeMonthlyEntry()">✕</button>
+      <div class="modal-head-actions">
+        <span class="savebadge" id="monthlyEntrySaveStatus"></span>
+        <button class="tbtn" onclick="saveMonthlyEntryNow()">저장</button>
+        <button class="modal-close" onclick="closeMonthlyEntry()">✕</button>
+      </div>
     </div>
     <div class="modal-body" id="monthlyEntryBody"></div>
   </div>
@@ -1565,15 +1582,24 @@ function renderFinanceAccountSection(title, group){
   var categories = [];
   accounts.forEach(function(a){ if(categories.indexOf(a.category)===-1) categories.push(a.category); });
 
-  var out = '<div class="finance-section"><h4>'+esc(title)+'</h4>';
+  var out = '<div class="finance-section"><h4>'+esc(title);
+  if(group==='income'){
+    out += '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\'income\',\'income\',\'수입\')" title="계정 추가">+</button>';
+  }
+  out += '</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
   out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:165px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
   out += '</tr></thead><tbody>';
 
   categories.forEach(function(cat){
     var catAccounts = accounts.filter(function(a){ return a.category===cat; });
-    if(cat!=='carryover'){
-      out += '<tr><td colspan="6" class="finance-group-label">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
+    // 이월금(carryover), 그리고 income 그룹 자체의 기본 income 카테고리는
+    // 섹션 제목("수입 (Income)")과 중복되므로 별도 그룹 라벨을 표시하지 않습니다.
+    var showGroupLabel = cat!=='carryover' && !(group==='income' && cat==='income');
+    if(showGroupLabel){
+      var catLabel = catAccounts[0].categoryLabel||'';
+      out += '<tr><td colspan="6" class="finance-group-label">'+esc(catLabel)+
+        '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\''+esc(group)+'\',\''+esc(cat)+'\',\''+esc(catLabel)+'\')" title="계정 추가">+</button></td></tr>';
     }
     var catSubtotal=0, catBudgetSubtotal=0;
     catAccounts.forEach(function(a){
@@ -1581,12 +1607,12 @@ function renderFinanceAccountSection(title, group){
       var actual = finAccountActual(a);
       catSubtotal += actual; catBudgetSubtotal += (parseFloat(a.budget)||0);
       out += '<tr>';
-      out += '<td class="acc-code">'+esc(a.code)+'</td>';
+      out += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+esc(a.code)+'</button></td>';
       out += '<td class="acc-name">'+esc(a.name)+'</td>';
       out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
-      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(a.priorActual)+'"></td>';
-      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(a.budget)+'"></td>';
-      out += '<td><button type="button" class="finance-actual-btn js-open-monthly" data-idx="'+idx+'">'+fmtMoney(actual)+'</button></td>';
+      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(fmtMoney(a.priorActual))+'"></td>';
+      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(fmtMoney(a.budget))+'"></td>';
+      out += '<td class="fin-actual-display">'+fmtMoney(actual)+'</td>';
       out += '</tr>';
     });
     if(cat!=='carryover' && catAccounts.length>1){
@@ -1661,7 +1687,8 @@ function renderFinancePerCapitaSection(){
 function openMonthlyEntry(idx){
   var fin = financeState;
   var acc = fin.accounts[idx];
-  document.getElementById('monthlyEntryTitle').textContent = acc.code+' '+acc.name;
+  document.getElementById('monthlyEntryTitle').textContent = acc.code+' '+acc.name+' '+fin.year;
+  document.getElementById('monthlyEntrySaveStatus').textContent = '';
   var monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   var out = '<div class="month-grid">';
   monthNames.forEach(function(mn, mi){
@@ -1676,6 +1703,19 @@ function closeMonthlyEntry(){
   document.getElementById('monthlyEntryOverlay').classList.add('hidden');
   if(financeState) renderFinanceBody();
 }
+function saveMonthlyEntryNow(){
+  if(!financeState || !isConfigured()) return;
+  var status = document.getElementById('monthlyEntrySaveStatus');
+  status.textContent='저장 중…'; status.classList.add('loading-pulse');
+  postToScript({action:'saveFinance', year: financeState.year, finance: financeState}).then(function(){
+    markFinanceClean();
+    status.textContent='저장됨'; status.classList.remove('loading-pulse');
+  }).catch(function(err){
+    console.error(err);
+    status.textContent='저장 실패'; status.classList.remove('loading-pulse');
+    alert('저장 중 오류가 발생했습니다.');
+  });
+}
 document.getElementById('monthlyEntryOverlay').addEventListener('input', function(e){
   if(!e.target.classList.contains('fin-field')) return;
   var path = JSON.parse(e.target.dataset.path);
@@ -1687,7 +1727,19 @@ document.getElementById('monthlyEntryOverlay').addEventListener('input', functio
 document.getElementById('monthlyEntryOverlay').addEventListener('click', function(e){ if(e.target.id==='monthlyEntryOverlay') closeMonthlyEntry(); });
 document.getElementById('newFinanceOverlay').addEventListener('click', function(e){ if(e.target.id==='newFinanceOverlay') closeNewFinanceDialog(); });
 
+/** 계정표의 "+" 버튼: 그 그룹/카테고리에 빈 계정을 하나 추가합니다(코드·내용은 직접 입력). */
+function addFinanceAccount(group, category, categoryLabel){
+  financeState.accounts.push({
+    code:'', name:'', group:group, category:category, categoryLabel:categoryLabel||'',
+    memo:'', priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
+  });
+  markFinanceDirty();
+  renderFinanceBody();
+}
+
 function onFinanceClick(e){
+  var addAcctBtn = e.target.closest('.finance-add-account-btn');
+  if(addAcctBtn) return; // 이 버튼들은 inline onclick으로 직접 처리합니다 (addFinanceAccount)
   var delBtn = e.target.closest('.js-fin-row-del');
   if(delBtn){
     var listPath = JSON.parse(delBtn.dataset.listpath);
@@ -1707,9 +1759,18 @@ function onFinanceClick(e){
   var monthlyBtn = e.target.closest('.js-open-monthly');
   if(monthlyBtn){ openMonthlyEntry(parseInt(monthlyBtn.dataset.idx,10)); return; }
 }
+/** "$1,234.56" 처럼 화면에 표시된 금액에서 숫자만 뽑아냅니다. */
+function parseMoneyInput(v){
+  if(typeof v !== 'string') return v;
+  return v.replace(/[^0-9.\-]/g,'');
+}
 function onFinanceInput(e){
   if(e.target.classList.contains('fin-field')){
-    setFinanceField(JSON.parse(e.target.dataset.path), e.target.value);
+    var path = JSON.parse(e.target.dataset.path);
+    var lastKey = path[path.length-1];
+    var value = e.target.value;
+    if(lastKey==='priorActual' || lastKey==='budget'){ value = parseMoneyInput(value); }
+    setFinanceField(path, value);
   }
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
