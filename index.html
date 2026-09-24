@@ -507,10 +507,10 @@ body{
 .finance-table tr.subtotal td{background:#F3ECDA;font-weight:700;}
 .finance-table tr.grandtotal td{background:var(--ink);color:var(--white);font-weight:700;}
 
-.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;}
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
 .month-grid .mcell{display:flex;flex-direction:column;gap:1px;}
-.month-grid .mcell label{font-size:9.5px;color:var(--sub);}
-.month-grid .mcell input{border:1px solid var(--edge);border-radius:4px;padding:2px 3px;font-size:10.5px;text-align:right;font-family:'Noto Sans KR',sans-serif;}
+.month-grid .mcell label{font-size:10px;color:var(--sub);}
+.month-grid .mcell input{border:1px solid var(--edge);border-radius:4px;padding:3px 4px;font-size:11px;text-align:right;font-family:'Noto Sans KR',sans-serif;}
 .month-grid .mcell input:focus{outline:none;border-color:var(--gold);}
 .month-total{text-align:right;font-weight:700;font-size:13px;color:var(--ink);margin-top:4px;padding-top:8px;border-top:1px solid var(--edge);}
 
@@ -1692,7 +1692,7 @@ function openMonthlyEntry(idx){
   var monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   var out = '<div class="month-grid">';
   monthNames.forEach(function(mn, mi){
-    out += '<div class="mcell"><label>'+mn+'</label><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'monthly',mi]))+'" value="'+esc(acc.monthly[mi])+'"></div>';
+    out += '<div class="mcell"><label>'+mn+'</label><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'monthly',mi]))+'" value="'+esc(fmtMoney(acc.monthly[mi]))+'"></div>';
   });
   out += '</div>';
   out += '<div class="month-total" id="monthlyEntryTotal">합계: '+fmtMoney(finAccountActual(acc))+'</div>';
@@ -1719,7 +1719,7 @@ function saveMonthlyEntryNow(){
 document.getElementById('monthlyEntryOverlay').addEventListener('input', function(e){
   if(!e.target.classList.contains('fin-field')) return;
   var path = JSON.parse(e.target.dataset.path);
-  setFinanceField(path, e.target.value);
+  setFinanceField(path, parseMoneyInput(e.target.value));
   var acc = financeState.accounts[path[1]];
   var totalEl = document.getElementById('monthlyEntryTotal');
   if(totalEl) totalEl.textContent = '합계: '+fmtMoney(finAccountActual(acc));
