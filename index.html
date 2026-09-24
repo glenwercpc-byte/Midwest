@@ -1586,7 +1586,7 @@ function renderFinanceAccountSection(title, group){
   var categories = [];
   accounts.forEach(function(a){ if(categories.indexOf(a.category)===-1) categories.push(a.category); });
 
-  var out = '<div class="finance-section"><h4>'+esc(title);
+  var out = '<div class="finance-section"><h4><span>'+esc(title)+'</span>';
   if(group==='income'){
     out += '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\'income\',\'income\',\'수입\')" title="계정 추가">+</button>';
   }
@@ -1602,7 +1602,7 @@ function renderFinanceAccountSection(title, group){
     var showGroupLabel = cat!=='carryover' && !(group==='income' && cat==='income');
     if(showGroupLabel){
       var catLabel = catAccounts[0].categoryLabel||'';
-      out += '<tr><td colspan="6" class="finance-group-label">'+esc(catLabel)+
+      out += '<tr><td colspan="6" class="finance-group-label"><span>'+esc(catLabel)+'</span>'+
         '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\''+esc(group)+'\',\''+esc(cat)+'\',\''+esc(catLabel)+'\')" title="계정 추가">+</button></td></tr>';
     }
     var catSubtotal=0, catBudgetSubtotal=0;
