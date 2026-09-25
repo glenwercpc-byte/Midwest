@@ -1749,16 +1749,17 @@ function renderFinanceLedgerSection(){
   out += '<th style="width:100px;">Debit</th><th style="width:100px;">Deposit</th><th style="width:110px;">Balance</th><th>내용</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   fin.ledger.forEach(function(row, idx){
-    function field(key, align){
-      return '<td><input class="fin-field" style="text-align:'+align+';" data-path="'+esc(JSON.stringify(['ledger',idx,key]))+'" value="'+esc(row[key])+'"></td>';
+    function field(key, align, money){
+      var v = money ? fmtMoney(ledgerNum(row[key])) : row[key];
+      return '<td><input class="fin-field'+(money?' ledger-money':'')+'" style="text-align:'+align+';" data-path="'+esc(JSON.stringify(['ledger',idx,key]))+'" value="'+esc(v)+'"></td>';
     }
     out += '<tr class="ledger-row'+(isLedgerPending(row)?' ledger-pending':'')+'" data-ledger-idx="'+idx+'">';
     out += field('checkNo','center');
     out += field('issueDate','center');
     out += field('depositDate','center');
     out += field('payTo','left');
-    out += field('debit','right');
-    out += field('deposit','right');
+    out += field('debit','right',true);
+    out += field('deposit','right',true);
     out += '<td class="ledger-balance" data-ledger-idx="'+idx+'" style="text-align:right;">'+fmtMoney(calc.balances[idx])+'</td>';
     out += field('note','left');
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
@@ -1975,7 +1976,7 @@ function onFinanceInput(e){
     var path = JSON.parse(e.target.dataset.path);
     var lastKey = path[path.length-1];
     var value = e.target.value;
-    if(lastKey==='priorActual' || lastKey==='budget'){ value = parseMoneyInput(value); }
+    if(lastKey==='priorActual' || lastKey==='budget' || (path[0]==='ledger' && (lastKey==='debit' || lastKey==='deposit'))){ value = parseMoneyInput(value); }
     setFinanceField(path, value);
     if(path[0]==='perCapita' && lastKey==='members'){ updatePerCapitaDisplays(); }
     else if(path[0]==='perCapitaRates'){ updatePerCapitaDisplays(); }
@@ -1984,6 +1985,12 @@ function onFinanceInput(e){
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
 document.getElementById('financeOverlay').addEventListener('input', onFinanceInput);
+/* Debit/Deposit 칸은 입력을 마치고 나가면 $0.00 형식으로 다시 표시합니다. */
+document.getElementById('financeOverlay').addEventListener('focusout', function(e){
+  if(e.target.classList && e.target.classList.contains('ledger-money')){
+    e.target.value = fmtMoney(ledgerNum(e.target.value));
+  }
+});
 
 /* 재정 입력칸을 클릭(포커스)하면 내용을 전체 선택해서 바로 새 값을 입력하거나
    고칠 수 있게 합니다. (focus는 버블링이 안 되므로 focusin으로 위임합니다) */
