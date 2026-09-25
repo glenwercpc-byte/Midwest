@@ -539,6 +539,13 @@ body{
 }
 .finance-add-row-btn:hover{border-color:var(--gold);color:var(--gold);}
 .finance-table-wrap{overflow-x:auto;}
+.ledger-summary{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:10px;font-size:12.5px;}
+.ledger-summary label{display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600;color:var(--ink);}
+.ledger-summary input{width:120px;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'Noto Sans KR',sans-serif;}
+.ledger-summary input.ledger-calc{background:var(--paper-deep);color:var(--ink);font-weight:700;cursor:default;}
+.ledger-summary label.pending,.ledger-summary label.pending input{color:#c0392b;}
+.ledger-summary label.final input{border-color:var(--ink);}
+.finance-table tr.ledger-pending td,.finance-table tr.ledger-pending td input{color:#c0392b;}
 
 .finance-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
 .finance-print-view .fp-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;text-align:center;margin:0 0 10px;}
@@ -1695,23 +1702,65 @@ function renderFinanceAccountSection(title, group){
   return out;
 }
 
+/** 예전 형식(date/desc/memo)의 거래 행을 새 형식으로 옮깁니다.
+    date → 발행일, desc → Pay to order, memo → 내용 */
+function normalizeLedgerRow(row){
+  if(!row) return row;
+  if(row.issueDate===undefined && row.date!==undefined){ row.issueDate = row.date; }
+  if(row.payTo===undefined && row.desc!==undefined){ row.payTo = row.desc; }
+  if(row.note===undefined && row.memo!==undefined){ row.note = row.memo; }
+  delete row.date; delete row.desc; delete row.memo;
+  ['checkNo','issueDate','depositDate','payTo','note'].forEach(function(k){ if(row[k]===undefined) row[k]=''; });
+  if(row.debit===undefined) row.debit = 0;
+  if(row.deposit===undefined) row.deposit = 0;
+  return row;
+}
+function ledgerNum(v){ return parseFloat(parseMoneyInput(String(v==null?'':v)))||0; }
+function isLedgerPending(row){ return String(row.note||'').indexOf('미결재')>-1; }
+
+/** 은행 거래 내역의 행별 잔액, 기말 잔액, 미결재 수표, 최종 잔액을 계산합니다. */
+function computeLedger(fin){
+  var running = ledgerNum(fin.openingBalance);
+  var balances = [], pending = 0;
+  (fin.ledger||[]).forEach(function(row){
+    running += ledgerNum(row.deposit) - ledgerNum(row.debit);
+    balances.push(running);
+    if(isLedgerPending(row)) pending += ledgerNum(row.debit);
+  });
+  return { balances: balances, closing: running, pending: pending, final: running - pending };
+}
+
 function renderFinanceLedgerSection(){
   var fin = financeState;
+  if(!fin.ledger) fin.ledger = [];
+  fin.ledger.forEach(normalizeLedgerRow);
+  var calc = computeLedger(fin);
+
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
-  out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></div>';
-  out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:90px;">날짜</th><th>내용</th><th style="width:100px;">출금</th><th style="width:100px;">입금</th><th style="width:110px;">잔액</th><th>메모</th><th style="width:34px;"></th>';
+  out += '<div class="ledger-summary">';
+  out += '<label>기초 잔액(Opening Balance)<input class="fin-field" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></label>';
+  out += '<label>기말 잔액<input class="ledger-calc" id="ledgerClosing" readonly tabindex="-1" value="'+esc(fmtMoney(calc.closing))+'"></label>';
+  out += '<label class="pending">미결재 수표<input class="ledger-calc" id="ledgerPending" readonly tabindex="-1" value="'+esc(fmtMoney(calc.pending))+'"></label>';
+  out += '<label class="final">최종 잔액<input class="ledger-calc" id="ledgerFinal" readonly tabindex="-1" value="'+esc(fmtMoney(calc.final))+'"></label>';
+  out += '</div>';
+
+  out += '<div class="finance-table-wrap"><table class="finance-table ledger-table"><thead><tr>';
+  out += '<th style="width:72px;">Check #</th><th style="width:96px;">발행일</th><th style="width:96px;">입금일</th><th>Pay to order</th>';
+  out += '<th style="width:100px;">Debit</th><th style="width:100px;">Deposit</th><th style="width:110px;">Balance</th><th>내용</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
-  var running = parseFloat(fin.openingBalance)||0;
   fin.ledger.forEach(function(row, idx){
-    running += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
-    out += '<tr>';
-    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'date']))+'" value="'+esc(row.date)+'"></td>';
-    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'desc']))+'" value="'+esc(row.desc)+'"></td>';
-    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(row.debit)+'"></td>';
-    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(row.deposit)+'"></td>';
-    out += '<td style="text-align:right;">'+fmtMoney(running)+'</td>';
-    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
+    function field(key, align){
+      return '<td><input class="fin-field" style="text-align:'+align+';" data-path="'+esc(JSON.stringify(['ledger',idx,key]))+'" value="'+esc(row[key])+'"></td>';
+    }
+    out += '<tr class="ledger-row'+(isLedgerPending(row)?' ledger-pending':'')+'" data-ledger-idx="'+idx+'">';
+    out += field('checkNo','center');
+    out += field('issueDate','center');
+    out += field('depositDate','center');
+    out += field('payTo','left');
+    out += field('debit','right');
+    out += field('deposit','right');
+    out += '<td class="ledger-balance" data-ledger-idx="'+idx+'" style="text-align:right;">'+fmtMoney(calc.balances[idx])+'</td>';
+    out += field('note','left');
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
   });
@@ -1719,6 +1768,22 @@ function renderFinanceLedgerSection(){
   out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="ledger">+ 거래 추가</button>';
   out += '</div>';
   return out;
+}
+
+/** Debit/Deposit/기초 잔액/내용이 바뀔 때 전체를 다시 그리지 않고 잔액 칸과 요약만 갱신합니다. */
+function updateLedgerDisplays(){
+  var fin = financeState;
+  if(!fin || !fin.ledger) return;
+  var calc = computeLedger(fin);
+  fin.ledger.forEach(function(row, idx){
+    var cell = document.querySelector('.ledger-balance[data-ledger-idx="'+idx+'"]');
+    if(cell) cell.textContent = fmtMoney(calc.balances[idx]);
+    var tr = document.querySelector('.ledger-row[data-ledger-idx="'+idx+'"]');
+    if(tr) tr.classList.toggle('ledger-pending', isLedgerPending(row));
+  });
+  var c = document.getElementById('ledgerClosing'); if(c) c.value = fmtMoney(calc.closing);
+  var pd = document.getElementById('ledgerPending'); if(pd) pd.value = fmtMoney(calc.pending);
+  var f = document.getElementById('ledgerFinal'); if(f) f.value = fmtMoney(calc.final);
 }
 
 function renderFinancePerCapitaSection(){
@@ -1884,7 +1949,7 @@ function onFinanceClick(e){
   var addBtn = e.target.closest('.js-fin-add-row');
   if(addBtn){
     var kind = addBtn.dataset.kind;
-    if(kind==='ledger'){ financeState.ledger.push({date:'', desc:'', debit:0, deposit:0, memo:''}); }
+    if(kind==='ledger'){ financeState.ledger.push({checkNo:'', issueDate:'', depositDate:'', payTo:'', debit:0, deposit:0, note:''}); }
     else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, paidDate:'', memo:''}); }
     markFinanceDirty(); renderFinanceBody();
     return;
@@ -1914,6 +1979,7 @@ function onFinanceInput(e){
     setFinanceField(path, value);
     if(path[0]==='perCapita' && lastKey==='members'){ updatePerCapitaDisplays(); }
     else if(path[0]==='perCapitaRates'){ updatePerCapitaDisplays(); }
+    else if(path[0]==='openingBalance' || path[0]==='ledger'){ updateLedgerDisplays(); }
   }
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
