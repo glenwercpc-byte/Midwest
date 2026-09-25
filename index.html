@@ -1728,10 +1728,10 @@ function renderFinancePerCapitaSection(){
   var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
   var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th>교회명</th><th style="width:70px;">교인수</th>';
-  out += '<th style="width:110px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
-  out += '<th style="width:110px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
-  out += '<th style="width:110px;">합계</th><th style="width:100px;">완납일</th><th>메모</th><th style="width:34px;"></th>';
+  out += '<th>교회명</th><th style="width:64px;text-align:center;">교인수</th>';
+  out += '<th style="width:140px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
+  out += '<th style="width:140px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
+  out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th style="width:80px;">메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   var grandTotal=0, memberTotal=0, sum1=0, sum2=0;
   fin.perCapita.forEach(function(row, idx){
@@ -1741,11 +1741,11 @@ function renderFinancePerCapitaSection(){
     grandTotal += total; memberTotal += members; sum1 += amt1; sum2 += amt2;
     out += '<tr>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'church']))+'" value="'+esc(row.church)+'"></td>';
-    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'members']))+'" value="'+esc(row.members)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['perCapita',idx,'members']))+'" value="'+esc(row.members)+'"></td>';
     out += '<td><input class="fin-field fin-percap-amt1" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt1))+'"></td>';
     out += '<td><input class="fin-field fin-percap-amt2" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt2))+'"></td>';
     out += '<td class="fin-percap-total" data-percap-idx="'+idx+'" style="text-align:right;">'+fmtMoney(total)+'</td>';
-    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['perCapita']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
