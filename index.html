@@ -508,6 +508,11 @@ body{
   box-shadow:0 0 0 2px rgba(191,155,66,.35);
 }
 .fin-actual-display{width:100%;text-align:right;padding:4px 6px;font-size:12px;color:var(--ink);}
+.fin-rate-input{
+  width:38px!important;display:inline-block;border:1px solid var(--edge);border-radius:3px;
+  padding:1px 3px;font-size:11px;text-align:center;font-family:'Noto Sans KR',sans-serif;
+  font-weight:400;color:var(--ink);vertical-align:middle;
+}
 .finance-table tr.subtotal td{background:#F3ECDA;font-weight:700;}
 .finance-table tr.grandtotal td{background:var(--ink);color:var(--white);font-weight:700;}
 .finance-table tr.carryover-row td{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);}
@@ -1473,7 +1478,7 @@ function blankFinance(year){
       memo:'', priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
     };
   });
-  return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [] };
+  return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [], perCapitaRates: {perCapita:34, mission:15} };
 }
 
 var financeState = null;
@@ -1579,8 +1584,9 @@ function confirmNewFinance(mode){
       if(prev){ a.priorActual = finAccountActual(prev); }
     });
     fresh.openingBalance = finComputeTotals(financeState).balance;
+    if(financeState.perCapitaRates){ fresh.perCapitaRates = deepClone(financeState.perCapitaRates); }
     fresh.perCapita = deepClone(financeState.perCapita||[]).map(function(p){
-      return {church:p.church, members:p.members, perCapitaRate:p.perCapitaRate, missionRate:p.missionRate, paidDate:'', memo:''};
+      return {church:p.church, members:p.members, paidDate:'', memo:''};
     });
   }
   financeState = fresh;
@@ -1613,6 +1619,29 @@ function renderFinanceBody(){
   document.getElementById('financeBody').innerHTML = out;
 }
 
+function renderFinanceAccountRow(fin, a){
+  var idx = fin.accounts.indexOf(a);
+  var actual = finAccountActual(a);
+  var row = '<tr'+(a.category==='carryover'?' class="carryover-row"':'')+'>';
+  row += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+((a.code||'').trim()===''?'번호 입력':esc(a.code))+'</button></td>';
+  row += '<td class="acc-name"><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'name']))+'" value="'+esc(a.name)+'"></td>';
+  row += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
+  row += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(fmtMoney(a.priorActual))+'"></td>';
+  row += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(fmtMoney(a.budget))+'"></td>';
+  row += '<td class="fin-actual-display">'+fmtMoney(actual)+'</td>';
+  row += '</tr>';
+  return row;
+}
+function renderFinanceSubtotalRow(label, list){
+  var s=0, sb=0, sp=0;
+  list.forEach(function(a){
+    s += finAccountActual(a); sb += (parseFloat(a.budget)||0); sp += (parseFloat(a.priorActual)||0);
+  });
+  return '<tr class="subtotal"><td colspan="3" style="text-align:right;">'+esc(label)+'</td><td style="text-align:right;">'+fmtMoney(sp)+'</td><td style="text-align:right;">'+fmtMoney(sb)+'</td><td style="text-align:right;">'+fmtMoney(s)+'</td></tr>';
+}
+/** 사무총장(EP) 계정 중 사례비(9011~9030) 성격 계정들의 코드입니다. 나머지(9510,9520 및 새로 추가되는 계정)는 활동비로 분류됩니다. */
+var EP_SALARY_CODES = ['9011','9012','9020','9021','9030'];
+
 function renderFinanceAccountSection(title, group){
   var fin = financeState;
   var accounts = fin.accounts.filter(function(a){ return a.group===group; });
@@ -1638,22 +1667,21 @@ function renderFinanceAccountSection(title, group){
       out += '<tr><td colspan="6" class="finance-group-label"><div class="finance-group-label-row"><span>'+esc(catLabel)+'</span>'+
         '<button type="button" class="finance-add-account-btn" onclick="addFinanceAccount(\''+esc(group)+'\',\''+esc(cat)+'\',\''+esc(catLabel)+'\')" title="계정 추가">+</button></div></td></tr>';
     }
-    var catSubtotal=0, catBudgetSubtotal=0, catPriorSubtotal=0;
-    catAccounts.forEach(function(a){
-      var idx = fin.accounts.indexOf(a);
-      var actual = finAccountActual(a);
-      catSubtotal += actual; catBudgetSubtotal += (parseFloat(a.budget)||0); catPriorSubtotal += (parseFloat(a.priorActual)||0);
-      out += '<tr'+(a.category==='carryover'?' class="carryover-row"':'')+'>';
-      out += '<td class="acc-code"><button type="button" class="finance-acccode-btn js-open-monthly" data-idx="'+idx+'">'+((a.code||'').trim()===''?'번호 입력':esc(a.code))+'</button></td>';
-      out += '<td class="acc-name"><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'name']))+'" value="'+esc(a.name)+'"></td>';
-      out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['accounts',idx,'memo']))+'" value="'+esc(a.memo||'')+'"></td>';
-      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'priorActual']))+'" value="'+esc(fmtMoney(a.priorActual))+'"></td>';
-      out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['accounts',idx,'budget']))+'" value="'+esc(fmtMoney(a.budget))+'"></td>';
-      out += '<td class="fin-actual-display">'+fmtMoney(actual)+'</td>';
-      out += '</tr>';
-    });
-    if(cat!=='carryover' && catAccounts.length>1){
-      out += '<tr class="subtotal"><td colspan="3" style="text-align:right;">소계</td><td style="text-align:right;">'+fmtMoney(catPriorSubtotal)+'</td><td style="text-align:right;">'+fmtMoney(catBudgetSubtotal)+'</td><td style="text-align:right;">'+fmtMoney(catSubtotal)+'</td></tr>';
+
+    if(group==='expense' && cat==='ep'){
+      // 사무총장(EP) 항목은 사례비(9011~9030)와 활동비(9510,9520)로 나누어 각각 소계를 표시합니다.
+      var salaryAccounts = catAccounts.filter(function(a){ return EP_SALARY_CODES.indexOf(a.code)>-1; });
+      var activityAccounts = catAccounts.filter(function(a){ return EP_SALARY_CODES.indexOf(a.code)===-1; });
+      salaryAccounts.forEach(function(a){ out += renderFinanceAccountRow(fin, a); });
+      if(salaryAccounts.length) out += renderFinanceSubtotalRow('사무총장 사례비 소계', salaryAccounts);
+      activityAccounts.forEach(function(a){ out += renderFinanceAccountRow(fin, a); });
+      if(activityAccounts.length) out += renderFinanceSubtotalRow('사무총장 활동비 소계', activityAccounts);
+    } else {
+      catAccounts.forEach(function(a){ out += renderFinanceAccountRow(fin, a); });
+      if(cat!=='carryover' && catAccounts.length>1){
+        var subtotalLabel = (group==='expense' && cat==='reserve') ? 'Total Equity' : '소계';
+        out += renderFinanceSubtotalRow(subtotalLabel, catAccounts);
+      }
     }
   });
 
@@ -1695,32 +1723,67 @@ function renderFinanceLedgerSection(){
 
 function renderFinancePerCapitaSection(){
   var fin = financeState;
+  if(!fin.perCapitaRates) fin.perCapitaRates = {perCapita:34, mission:15};
+  var rate1 = parseFloat(fin.perCapitaRates.perCapita)||0;
+  var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
   var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th>교회명</th><th style="width:70px;">교인수</th><th style="width:90px;">상회비율</th><th style="width:90px;">선교비율</th><th style="width:110px;">합계</th><th style="width:100px;">완납일</th><th>메모</th><th style="width:34px;"></th>';
+  out += '<th>교회명</th><th style="width:70px;">교인수</th>';
+  out += '<th style="width:110px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
+  out += '<th style="width:110px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
+  out += '<th style="width:110px;">합계</th><th style="width:100px;">완납일</th><th>메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
-  var grandTotal=0, memberTotal=0;
+  var grandTotal=0, memberTotal=0, sum1=0, sum2=0;
   fin.perCapita.forEach(function(row, idx){
     var members = parseFloat(row.members)||0;
-    var rate1 = parseFloat(row.perCapitaRate)||0, rate2 = parseFloat(row.missionRate)||0;
-    var total = members*(rate1+rate2);
-    grandTotal += total; memberTotal += members;
+    var amt1 = members*rate1, amt2 = members*rate2;
+    var total = amt1+amt2;
+    grandTotal += total; memberTotal += members; sum1 += amt1; sum2 += amt2;
     out += '<tr>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'church']))+'" value="'+esc(row.church)+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'members']))+'" value="'+esc(row.members)+'"></td>';
-    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'perCapitaRate']))+'" value="'+esc(row.perCapitaRate)+'"></td>';
-    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['perCapita',idx,'missionRate']))+'" value="'+esc(row.missionRate)+'"></td>';
-    out += '<td style="text-align:right;">'+fmtMoney(total)+'</td>';
+    out += '<td><input class="fin-field fin-percap-amt1" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt1))+'"></td>';
+    out += '<td><input class="fin-field fin-percap-amt2" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt2))+'"></td>';
+    out += '<td class="fin-percap-total" data-percap-idx="'+idx+'" style="text-align:right;">'+fmtMoney(total)+'</td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['perCapita']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
   });
-  out += '<tr class="subtotal"><td>합계</td><td style="text-align:right;">'+memberTotal+'명</td><td colspan="2"></td><td style="text-align:right;">'+fmtMoney(grandTotal)+'</td><td colspan="2"></td><td></td></tr>';
+  out += '<tr class="subtotal"><td>합계</td><td id="percapSumMembers" style="text-align:right;">'+memberTotal+'명</td><td id="percapSumAmt1" style="text-align:right;">'+fmtMoney(sum1)+'</td><td id="percapSumAmt2" style="text-align:right;">'+fmtMoney(sum2)+'</td><td id="percapSumTotal" style="text-align:right;">'+fmtMoney(grandTotal)+'</td><td colspan="2"></td><td></td></tr>';
   out += '</tbody></table></div>';
   out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="percap">+ 교회 추가</button>';
   out += '</div>';
   return out;
+}
+
+/** 교인수(또는 요율)가 바뀔 때마다 전체 화면을 다시 그리지 않고, 해당 계산 칸들만
+    즉시 업데이트합니다 (전체 다시 그리면 입력 중 포커스가 끊깁니다). */
+function updatePerCapitaDisplays(){
+  var fin = financeState;
+  if(!fin.perCapitaRates) return;
+  var rate1 = parseFloat(fin.perCapitaRates.perCapita)||0;
+  var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
+  var grandTotal=0, memberTotal=0, sum1=0, sum2=0;
+  fin.perCapita.forEach(function(row, idx){
+    var members = parseFloat(row.members)||0;
+    var amt1 = members*rate1, amt2 = members*rate2;
+    grandTotal += amt1+amt2; memberTotal += members; sum1 += amt1; sum2 += amt2;
+    var el1 = document.querySelector('.fin-percap-amt1[data-percap-idx="'+idx+'"]');
+    var el2 = document.querySelector('.fin-percap-amt2[data-percap-idx="'+idx+'"]');
+    var elT = document.querySelector('.fin-percap-total[data-percap-idx="'+idx+'"]');
+    if(el1) el1.value = fmtMoney(amt1);
+    if(el2) el2.value = fmtMoney(amt2);
+    if(elT) elT.textContent = fmtMoney(amt1+amt2);
+  });
+  var sm = document.getElementById('percapSumMembers');
+  var s1 = document.getElementById('percapSumAmt1');
+  var s2 = document.getElementById('percapSumAmt2');
+  var st = document.getElementById('percapSumTotal');
+  if(sm) sm.textContent = memberTotal+'명';
+  if(s1) s1.textContent = fmtMoney(sum1);
+  if(s2) s2.textContent = fmtMoney(sum2);
+  if(st) st.textContent = fmtMoney(grandTotal);
 }
 
 function openMonthlyEntry(idx){
@@ -1822,7 +1885,7 @@ function onFinanceClick(e){
   if(addBtn){
     var kind = addBtn.dataset.kind;
     if(kind==='ledger'){ financeState.ledger.push({date:'', desc:'', debit:0, deposit:0, memo:''}); }
-    else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, perCapitaRate:34, missionRate:15, paidDate:'', memo:''}); }
+    else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, paidDate:'', memo:''}); }
     markFinanceDirty(); renderFinanceBody();
     return;
   }
@@ -1849,6 +1912,8 @@ function onFinanceInput(e){
     var value = e.target.value;
     if(lastKey==='priorActual' || lastKey==='budget'){ value = parseMoneyInput(value); }
     setFinanceField(path, value);
+    if(path[0]==='perCapita' && lastKey==='members'){ updatePerCapitaDisplays(); }
+    else if(path[0]==='perCapitaRates'){ updatePerCapitaDisplays(); }
   }
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
@@ -1886,6 +1951,15 @@ function buildFinancePrintView(){
   var totals = finComputeTotals(fin);
   var out = '<div class="fp-title">MIDWEST KOREAN AMERICAN PRESBYTERY<br>('+esc(fin.year)+' INCOME/EXPENSE BUDGET)</div>';
 
+  function printAccountRow(a){
+    var actual = finAccountActual(a);
+    return '<tr><td>'+esc(a.code)+'</td><td>'+esc(a.name)+'</td><td>'+esc(a.memo||'')+'</td><td class="fp-num">'+fmtMoney(a.priorActual)+'</td><td class="fp-num">'+fmtMoney(a.budget)+'</td><td class="fp-num">'+fmtMoney(actual)+'</td></tr>';
+  }
+  function printSubtotalRow(label, list){
+    var s=0, sb=0, sp=0;
+    list.forEach(function(a){ s+=finAccountActual(a); sb+=(parseFloat(a.budget)||0); sp+=(parseFloat(a.priorActual)||0); });
+    return '<tr class="fp-subtotal"><td colspan="3">'+esc(label)+'</td><td class="fp-num">'+fmtMoney(sp)+'</td><td class="fp-num">'+fmtMoney(sb)+'</td><td class="fp-num">'+fmtMoney(s)+'</td></tr>';
+  }
   function accountRows(group){
     var accounts = fin.accounts.filter(function(a){ return a.group===group; });
     var categories = [];
@@ -1896,14 +1970,19 @@ function buildFinancePrintView(){
       if(cat!=='carryover'){
         rows += '<tr><td colspan="6" style="background:#f5f5f5;font-weight:700;">'+esc(catAccounts[0].categoryLabel||'')+'</td></tr>';
       }
-      var subtotal=0, subBudget=0, subPrior=0;
-      catAccounts.forEach(function(a){
-        var actual = finAccountActual(a);
-        subtotal += actual; subBudget += (parseFloat(a.budget)||0); subPrior += (parseFloat(a.priorActual)||0);
-        rows += '<tr><td>'+esc(a.code)+'</td><td>'+esc(a.name)+'</td><td>'+esc(a.memo||'')+'</td><td class="fp-num">'+fmtMoney(a.priorActual)+'</td><td class="fp-num">'+fmtMoney(a.budget)+'</td><td class="fp-num">'+fmtMoney(actual)+'</td></tr>';
-      });
-      if(cat!=='carryover' && catAccounts.length>1){
-        rows += '<tr class="fp-subtotal"><td colspan="3">소계</td><td class="fp-num">'+fmtMoney(subPrior)+'</td><td class="fp-num">'+fmtMoney(subBudget)+'</td><td class="fp-num">'+fmtMoney(subtotal)+'</td></tr>';
+      if(group==='expense' && cat==='ep'){
+        var salaryAccounts = catAccounts.filter(function(a){ return EP_SALARY_CODES.indexOf(a.code)>-1; });
+        var activityAccounts = catAccounts.filter(function(a){ return EP_SALARY_CODES.indexOf(a.code)===-1; });
+        salaryAccounts.forEach(function(a){ rows += printAccountRow(a); });
+        if(salaryAccounts.length) rows += printSubtotalRow('사무총장 사례비 소계', salaryAccounts);
+        activityAccounts.forEach(function(a){ rows += printAccountRow(a); });
+        if(activityAccounts.length) rows += printSubtotalRow('사무총장 활동비 소계', activityAccounts);
+      } else {
+        catAccounts.forEach(function(a){ rows += printAccountRow(a); });
+        if(cat!=='carryover' && catAccounts.length>1){
+          var subtotalLabel = (group==='expense' && cat==='reserve') ? 'Total Equity' : '소계';
+          rows += printSubtotalRow(subtotalLabel, catAccounts);
+        }
       }
     });
     return rows;
@@ -1924,12 +2003,13 @@ function buildFinancePrintView(){
   out += '<div class="fp-section-title">잔액 (Balance): '+fmtMoney(totals.balance)+'</div>';
 
   if(fin.perCapita && fin.perCapita.length){
+    var pcRates = fin.perCapitaRates || {perCapita:34, mission:15};
+    var pr1 = parseFloat(pcRates.perCapita)||0, pr2 = parseFloat(pcRates.mission)||0;
     out += '<div class="fp-section-title">교회별 상회비 현황</div>';
-    out += '<table><thead><tr><th>교회명</th><th>교인수</th><th>상회비</th><th>선교비</th><th>합계</th><th>완납일</th></tr></thead><tbody>';
+    out += '<table><thead><tr><th>교회명</th><th>교인수</th><th>상회비율($'+esc(pcRates.perCapita)+')</th><th>선교비율($'+esc(pcRates.mission)+')</th><th>합계</th><th>완납일</th></tr></thead><tbody>';
     fin.perCapita.forEach(function(row){
       var members = parseFloat(row.members)||0;
-      var r1=parseFloat(row.perCapitaRate)||0, r2=parseFloat(row.missionRate)||0;
-      out += '<tr><td>'+esc(row.church)+'</td><td class="fp-num">'+members+'</td><td class="fp-num">'+fmtMoney(members*r1)+'</td><td class="fp-num">'+fmtMoney(members*r2)+'</td><td class="fp-num">'+fmtMoney(members*(r1+r2))+'</td><td>'+esc(row.paidDate)+'</td></tr>';
+      out += '<tr><td>'+esc(row.church)+'</td><td class="fp-num">'+members+'</td><td class="fp-num">'+fmtMoney(members*pr1)+'</td><td class="fp-num">'+fmtMoney(members*pr2)+'</td><td class="fp-num">'+fmtMoney(members*(pr1+pr2))+'</td><td>'+esc(row.paidDate)+'</td></tr>';
     });
     out += '</tbody></table>';
   }
