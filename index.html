@@ -1654,7 +1654,7 @@ function renderFinanceAccountSection(title, group){
   }
   out += '</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:165px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
+  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:200px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
   out += '</tr></thead><tbody>';
 
   categories.forEach(function(cat){
@@ -1728,10 +1728,10 @@ function renderFinancePerCapitaSection(){
   var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
   var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th>교회명</th><th style="width:64px;text-align:center;">교인수</th>';
+  out += '<th style="width:314px;">교회명</th><th style="width:64px;text-align:center;">교인수</th>';
   out += '<th style="width:140px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
   out += '<th style="width:140px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
-  out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th style="width:80px;">메모</th><th style="width:34px;"></th>';
+  out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th>메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   var grandTotal=0, memberTotal=0, sum1=0, sum2=0;
   fin.perCapita.forEach(function(row, idx){
