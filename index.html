@@ -297,17 +297,22 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay{
+#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,#deleteFinanceOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#newFinanceOverlay.hidden,#monthlyEntryOverlay.hidden,#newAccountOverlay.hidden{display:none;}
+#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#newFinanceOverlay.hidden,#monthlyEntryOverlay.hidden,#newAccountOverlay.hidden,#deleteFinanceOverlay.hidden{display:none;}
 #newOrgOverlay{z-index:130;}
 #newMeetingOverlay{z-index:130;}
 #saveChoiceOverlay{z-index:130;}
 #newFinanceOverlay{z-index:130;}
 #monthlyEntryOverlay{z-index:135;}
 #newAccountOverlay{z-index:135;}
+#deleteFinanceOverlay{z-index:135;}
+.dlg-danger-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.dlg-danger-actions button{padding:9px 18px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1px solid var(--edge);background:var(--white);color:var(--ink);}
+.dlg-danger-actions button.danger{background:#c0392b;border-color:#c0392b;color:#fff;}
+.dlg-danger-actions button.danger:disabled{opacity:.4;cursor:not-allowed;}
 .dlg-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -447,6 +452,8 @@ body{
   border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
   margin-bottom:40px;
 }
+/* 년도 선택 화면에서는 패널 폭을 2/3로 줄입니다 */
+.finance-panel.year-list-mode{max-width:800px;width:62.7vw;min-width:min(94vw,420px);}
 .finance-head{
   position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
   padding:14px 20px;border-bottom:1px solid var(--edge);background:var(--paper-deep);
@@ -597,7 +604,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,#deleteFinanceOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -787,6 +794,23 @@ body{
     </div>
     <div class="finance-body" id="financeBody">불러오는 중…</div>
     <div class="finance-print-view" id="financePrintView"></div>
+  </div>
+</div>
+
+<div id="deleteFinanceOverlay" class="hidden">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-head">
+      <h3 id="deleteFinanceTitle">재정 데이터 삭제</h3>
+      <button class="modal-close" onclick="closeDeleteFinanceDialog()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="dlg-note" id="deleteFinanceNote"></p>
+      <input class="dlg-input" id="deleteFinanceInput" type="text" inputmode="numeric" autocomplete="off">
+      <div class="dlg-danger-actions">
+        <button type="button" onclick="closeDeleteFinanceDialog()">취소</button>
+        <button type="button" class="danger" id="deleteFinanceConfirmBtn" disabled onclick="confirmDeleteFinance()">삭제</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1560,6 +1584,7 @@ function openFinancePanel(){
 var financeYearsCache = [];
 function setFinanceEditMode(on){
   document.getElementById('financeEditActions').style.display = on ? 'inline-flex' : 'none';
+  document.querySelector('#financeOverlay .finance-panel').classList.toggle('year-list-mode', !on);
 }
 function showFinanceYearList(skipDirtyCheck){
   if(!skipDirtyCheck && financeDirty && !confirm('저장하지 않은 변경사항이 있습니다. 저장하지 않고 년도 선택으로 이동할까요?')) return;
@@ -1612,13 +1637,29 @@ function openFinanceYear(year){
     body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
   });
 }
+var deleteFinanceTarget = null;
 function deleteFinanceYear(year){
-  var typed = prompt(year+'년 재정 데이터를 삭제합니다. 삭제하면 되돌릴 수 없습니다.\n\n삭제하려면 '+year+' 를 입력하세요.');
-  if(typed===null) return;
-  if(String(typed).trim()!==String(year)){ alert('입력한 년도가 일치하지 않아 삭제하지 않았습니다.'); return; }
+  deleteFinanceTarget = String(year);
+  document.getElementById('deleteFinanceTitle').textContent = year+'년 재정 데이터 삭제';
+  document.getElementById('deleteFinanceNote').innerHTML = '<b style="color:#c0392b;">'+esc(year)+'년</b> 재정 데이터를 삭제합니다. 삭제하면 되돌릴 수 없습니다.<br>삭제하려면 아래 칸에 <b>'+esc(year)+'</b> 를 입력하세요.';
+  var input = document.getElementById('deleteFinanceInput');
+  input.value = ''; input.placeholder = String(year);
+  document.getElementById('deleteFinanceConfirmBtn').disabled = true;
+  document.getElementById('deleteFinanceOverlay').classList.remove('hidden');
+  setTimeout(function(){ input.focus(); }, 0);
+}
+function closeDeleteFinanceDialog(){
+  document.getElementById('deleteFinanceOverlay').classList.add('hidden');
+  deleteFinanceTarget = null;
+}
+function confirmDeleteFinance(){
+  var year = deleteFinanceTarget;
+  if(!year) return;
+  if(document.getElementById('deleteFinanceInput').value.trim()!==year) return;
+  closeDeleteFinanceDialog();
   document.getElementById('financeBody').innerHTML = '<div class="archive-empty loading-pulse">'+esc(year)+'년 삭제 중…</div>';
   postToScript({action:'deleteFinance', year: year}).then(function(){
-    if(financeState && String(financeState.year)===String(year)){ financeState = null; financeLoaded = false; financeDirty = false; }
+    if(financeState && String(financeState.year)===year){ financeState = null; financeLoaded = false; financeDirty = false; }
     showFinanceYearList(true);
   }).catch(function(err){
     console.error(err);
@@ -1626,6 +1667,14 @@ function deleteFinanceYear(year){
     showFinanceYearList(true);
   });
 }
+// 년도를 정확히 입력해야 삭제 버튼이 켜지고, Enter로도 삭제할 수 있습니다.
+document.getElementById('deleteFinanceInput').addEventListener('input', function(e){
+  document.getElementById('deleteFinanceConfirmBtn').disabled = (e.target.value.trim()!==deleteFinanceTarget);
+});
+document.getElementById('deleteFinanceInput').addEventListener('keydown', function(e){
+  if(e.key==='Enter'){ e.preventDefault(); confirmDeleteFinance(); }
+});
+document.getElementById('deleteFinanceOverlay').addEventListener('click', function(e){ if(e.target.id==='deleteFinanceOverlay') closeDeleteFinanceDialog(); });
 function closeFinancePanel(){ document.getElementById('financeOverlay').classList.add('hidden'); }
 document.getElementById('financeOverlay').addEventListener('click', function(e){ if(e.target.id==='financeOverlay') closeFinancePanel(); });
 
@@ -2259,7 +2308,9 @@ document.addEventListener('keydown', function(e){
     var newFinanceOpen = !document.getElementById('newFinanceOverlay').classList.contains('hidden');
     var monthlyOpen = !document.getElementById('monthlyEntryOverlay').classList.contains('hidden');
     var newAccountOpen = !document.getElementById('newAccountOverlay').classList.contains('hidden');
-    if(newAccountOpen){ cancelNewAccountEntry(); }
+    var deleteFinOpen = !document.getElementById('deleteFinanceOverlay').classList.contains('hidden');
+    if(deleteFinOpen){ closeDeleteFinanceDialog(); }
+    else if(newAccountOpen){ cancelNewAccountEntry(); }
     else if(newFinanceOpen){ closeNewFinanceDialog(); }
     else if(monthlyOpen){ closeMonthlyEntry(); }
     else { closeFinancePanel(); }
