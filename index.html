@@ -539,6 +539,14 @@ body{
 }
 .finance-add-row-btn:hover{border-color:var(--gold);color:var(--gold);}
 .finance-table-wrap{overflow-x:auto;}
+.fin-year-list{max-width:520px;margin:10px auto;display:flex;flex-direction:column;gap:10px;}
+.fin-year-item{display:flex;gap:8px;align-items:stretch;}
+.fin-year-open{flex:1;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border:1px solid var(--edge);border-radius:8px;background:var(--white);cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;}
+.fin-year-open:hover{border-color:var(--gold);background:var(--paper-deep);}
+.fin-year-open .y{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--ink);}
+.fin-year-open .u{font-size:12px;color:var(--sub);}
+.fin-year-del{padding:0 16px;border:1px solid #e3b4ad;border-radius:8px;background:var(--white);color:#c0392b;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.fin-year-del:hover{background:#c0392b;color:#fff;border-color:#c0392b;}
 .ledger-summary{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:10px;font-size:12.5px;}
 .ledger-summary label{display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600;color:var(--ink);}
 .ledger-summary input{width:120px;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'Noto Sans KR',sans-serif;}
@@ -767,10 +775,13 @@ body{
     <div class="finance-head">
       <h3 id="financeTitle">💰 재정 관리</h3>
       <div class="finance-head-actions">
-        <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
-        <button class="tbtn" onclick="saveFinanceData()">저장</button>
+        <span id="financeEditActions" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
+          <button class="tbtn" onclick="saveFinanceData()">저장</button>
+          <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
+          <button class="tbtn" onclick="showFinanceYearList()">📅 년도 선택</button>
+        </span>
         <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
-        <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
         <button class="modal-close" onclick="closeFinancePanel()">✕</button>
       </div>
     </div>
@@ -1534,12 +1545,86 @@ function setFinanceField(path, value){
   parent[path[path.length-1]] = value;
   markFinanceDirty();
 }
-function markFinanceDirty(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
-function markFinanceClean(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
+var financeDirty = false;
+function markFinanceDirty(){ financeDirty = true; var b=document.getElementById('financeSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
+function markFinanceClean(){ financeDirty = false; var b=document.getElementById('financeSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
 
 function openFinancePanel(){
   document.getElementById('financeOverlay').classList.remove('hidden');
-  if(!financeLoaded){ loadFinanceData(); } else { renderFinanceBody(); }
+  // 저장하지 않은 작업이 남아 있으면 그 화면을 그대로 보여주고, 아니면 년도 선택부터 시작합니다.
+  if(financeState && financeDirty){ setFinanceEditMode(true); renderFinanceBody(); }
+  else { showFinanceYearList(true); }
+}
+
+/* ---------- 년도 선택 / 삭제 ---------- */
+var financeYearsCache = [];
+function setFinanceEditMode(on){
+  document.getElementById('financeEditActions').style.display = on ? 'inline-flex' : 'none';
+}
+function showFinanceYearList(skipDirtyCheck){
+  if(!skipDirtyCheck && financeDirty && !confirm('저장하지 않은 변경사항이 있습니다. 저장하지 않고 년도 선택으로 이동할까요?')) return;
+  setFinanceEditMode(false);
+  document.getElementById('financeTitle').textContent = '💰 재정 관리 — 년도 선택';
+  var body = document.getElementById('financeBody');
+  if(!isConfigured()){ body.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
+  body.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
+  jsonp({action:'listFinanceYears'}).then(function(res){
+    if(!res || !res.ok){
+      body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'<br><br>Apps Script(Code.gs)를 새 버전으로 다시 배포했는지 확인해주세요.</div>';
+      return;
+    }
+    financeYearsCache = (res.items||[]).map(function(it){ return String(it.year); });
+    renderFinanceYearList(res.items||[]);
+  }).catch(function(err){
+    body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+  });
+}
+function renderFinanceYearList(items){
+  var out = '<div class="fin-year-list">';
+  if(!items.length){
+    out += '<div class="archive-empty">저장된 재정 데이터가 없습니다.<br>위의 "새 연도 작성"으로 시작해주세요.</div>';
+  }
+  items.forEach(function(it){
+    var when = it.updatedAt ? String(it.updatedAt).slice(0,10) : '';
+    out += '<div class="fin-year-item">';
+    out += '<button type="button" class="fin-year-open" onclick="openFinanceYear(\''+esc(it.year)+'\')"><span class="y">'+esc(it.year)+'년</span>'+(when?'<span class="u">마지막 저장 '+esc(when)+'</span>':'')+'</button>';
+    out += '<button type="button" class="fin-year-del" onclick="deleteFinanceYear(\''+esc(it.year)+'\')">삭제</button>';
+    out += '</div>';
+  });
+  out += '</div>';
+  document.getElementById('financeBody').innerHTML = out;
+}
+function openFinanceYear(year){
+  var body = document.getElementById('financeBody');
+  body.innerHTML = '<div class="archive-empty loading-pulse">'+esc(year)+'년 불러오는 중…</div>';
+  jsonp({action:'getFinance', year: year}).then(function(res){
+    if(res && res.ok){
+      financeState = res.finance ? res.finance : blankFinance(parseInt(year,10));
+      financeState.year = parseInt(year,10) || financeState.year;
+      financeLoaded = true;
+      markFinanceClean();
+      setFinanceEditMode(true);
+      renderFinanceBody();
+    } else {
+      body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
+    }
+  }).catch(function(err){
+    body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
+  });
+}
+function deleteFinanceYear(year){
+  var typed = prompt(year+'년 재정 데이터를 삭제합니다. 삭제하면 되돌릴 수 없습니다.\n\n삭제하려면 '+year+' 를 입력하세요.');
+  if(typed===null) return;
+  if(String(typed).trim()!==String(year)){ alert('입력한 년도가 일치하지 않아 삭제하지 않았습니다.'); return; }
+  document.getElementById('financeBody').innerHTML = '<div class="archive-empty loading-pulse">'+esc(year)+'년 삭제 중…</div>';
+  postToScript({action:'deleteFinance', year: year}).then(function(){
+    if(financeState && String(financeState.year)===String(year)){ financeState = null; financeLoaded = false; financeDirty = false; }
+    showFinanceYearList(true);
+  }).catch(function(err){
+    console.error(err);
+    alert('삭제 중 오류가 발생했습니다.');
+    showFinanceYearList(true);
+  });
 }
 function closeFinancePanel(){ document.getElementById('financeOverlay').classList.add('hidden'); }
 document.getElementById('financeOverlay').addEventListener('click', function(e){ if(e.target.id==='financeOverlay') closeFinancePanel(); });
@@ -1576,32 +1661,60 @@ function saveFinanceData(){
 }
 
 function openNewFinanceDialog(){
-  var suggested = (financeState && financeState.year ? parseInt(financeState.year,10) : new Date().getFullYear()) + 1;
-  document.getElementById('newFinanceYear').value = suggested;
+  if(financeDirty && !confirm('저장하지 않은 변경사항이 있습니다. 저장하지 않고 새 연도를 작성할까요?')) return;
+  var maxYear = financeYearsCache.reduce(function(m,y){ return Math.max(m, parseInt(y,10)||0); }, 0);
+  if(financeState && financeState.year) maxYear = Math.max(maxYear, parseInt(financeState.year,10)||0);
+  document.getElementById('newFinanceYear').value = (maxYear || new Date().getFullYear()-1) + 1;
   document.getElementById('newFinanceOverlay').classList.remove('hidden');
 }
 function closeNewFinanceDialog(){ document.getElementById('newFinanceOverlay').classList.add('hidden'); }
-function confirmNewFinance(mode){
-  var year = parseInt(document.getElementById('newFinanceYear').value, 10);
-  if(!year){ alert('생성년도를 입력해주세요.'); return; }
+function buildNewFinance(year, prevFin){
   var fresh = blankFinance(year);
-  if(mode==='carry' && financeState){
+  if(prevFin){
     fresh.accounts.forEach(function(a){
-      var prev = financeState.accounts.find(function(p){ return p.code===a.code; });
+      var prev = (prevFin.accounts||[]).find(function(p){ return p.code===a.code; });
       if(prev){ a.priorActual = finAccountActual(prev); }
     });
-    fresh.openingBalance = finComputeTotals(financeState).balance;
-    if(financeState.perCapitaRates){ fresh.perCapitaRates = deepClone(financeState.perCapitaRates); }
-    fresh.perCapita = deepClone(financeState.perCapita||[]).map(function(p){
+    fresh.openingBalance = finComputeTotals(prevFin).balance;
+    if(prevFin.perCapitaRates){ fresh.perCapitaRates = deepClone(prevFin.perCapitaRates); }
+    fresh.perCapita = deepClone(prevFin.perCapita||[]).map(function(p){
       return {church:p.church, members:p.members, paidDate:'', memo:''};
     });
   }
+  return fresh;
+}
+function startNewFinance(fresh){
   financeState = fresh;
   financeLoaded = true;
+  if(financeYearsCache.indexOf(String(fresh.year))===-1) financeYearsCache.push(String(fresh.year));
   closeNewFinanceDialog();
+  setFinanceEditMode(true);
   renderFinanceBody();
   markFinanceDirty();
   saveFinanceData();
+}
+function confirmNewFinance(mode){
+  var year = parseInt(document.getElementById('newFinanceYear').value, 10);
+  if(!year){ alert('생성년도를 입력해주세요.'); return; }
+  if(financeYearsCache.indexOf(String(year))>-1){
+    alert(year+'년 재정 데이터가 이미 있습니다. 년도 선택 화면에서 열거나, 먼저 삭제한 뒤 다시 만들어주세요.');
+    return;
+  }
+  if(mode!=='carry'){ startNewFinance(buildNewFinance(year, null)); return; }
+  var prevYear = year-1;
+  if(financeState && String(financeState.year)===String(prevYear)){
+    startNewFinance(buildNewFinance(year, financeState)); return;
+  }
+  // 지금 열려 있는 해가 전년도가 아니면 서버에서 전년도를 불러와 이어받습니다.
+  jsonp({action:'getFinance', year: prevYear}).then(function(res){
+    if(res && res.ok && res.finance){
+      startNewFinance(buildNewFinance(year, res.finance));
+    } else if(confirm(prevYear+'년 재정 데이터가 없습니다. 숫자 없이 새로 작성할까요?')){
+      startNewFinance(buildNewFinance(year, null));
+    }
+  }).catch(function(err){
+    alert('전년도 데이터를 불러오지 못했습니다: '+(err && err.message ? err.message : err));
+  });
 }
 
 function renderFinanceBody(){
