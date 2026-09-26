@@ -786,9 +786,9 @@ body{
           <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
           <button class="tbtn" onclick="saveFinanceData()">저장</button>
           <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
+          <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
           <button class="tbtn" onclick="showFinanceYearList()">📅 년도 선택</button>
         </span>
-        <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
         <button class="modal-close" onclick="closeFinancePanel()">✕</button>
       </div>
     </div>
@@ -1607,7 +1607,8 @@ function showFinanceYearList(skipDirtyCheck){
 function renderFinanceYearList(items){
   var out = '<div class="fin-year-list">';
   if(!items.length){
-    out += '<div class="archive-empty">저장된 재정 데이터가 없습니다.<br>위의 "새 연도 작성"으로 시작해주세요.</div>';
+    out += '<div class="archive-empty">저장된 재정 데이터가 없습니다.</div>';
+    out += '<div style="text-align:center;margin-top:14px;"><button type="button" class="finance-add-row-btn" onclick="openNewFinanceDialog()">+ 첫 연도 작성</button></div>';
   }
   items.forEach(function(it){
     var when = it.updatedAt ? String(it.updatedAt).slice(0,10) : '';
