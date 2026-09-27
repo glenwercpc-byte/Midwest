@@ -1713,7 +1713,8 @@ function renderFinanceLedgerSection(){
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(row.debit)+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(row.deposit)+'"></td>';
     out += '<td style="text-align:right;">'+fmtMoney(running)+'</td>';
-    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'description']))+'" value="'+esc(row.description)+'"></td>';
+    var descVal = (row.description!=null && row.description!=='') ? row.description : (row.desc || row.memo || '');
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'description']))+'" value="'+esc(descVal)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
   });
