@@ -1700,14 +1700,13 @@ function renderFinanceLedgerSection(){
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
   out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></div>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:80px;">발행일</th><th style="width:80px;">입금일</th><th>내용</th><th style="width:100px;">출금</th><th style="width:100px;">입금</th><th style="width:110px;">잔액</th><th>메모</th><th style="width:34px;"></th>';
+  out += '<th style="width:90px;">날짜</th><th>내용</th><th style="width:100px;">출금</th><th style="width:100px;">입금</th><th style="width:110px;">잔액</th><th>메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   var running = parseFloat(fin.openingBalance)||0;
   fin.ledger.forEach(function(row, idx){
     running += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
     out += '<tr>';
-    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['ledger',idx,'issueDate']))+'" value="'+esc(row.issueDate)+'"></td>';
-    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['ledger',idx,'depositDate']))+'" value="'+esc(row.depositDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'date']))+'" value="'+esc(row.date)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'desc']))+'" value="'+esc(row.desc)+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(row.debit)+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(row.deposit)+'"></td>';
@@ -1746,7 +1745,7 @@ function renderFinancePerCapitaSection(){
     out += '<td><input class="fin-field fin-percap-amt1" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt1))+'"></td>';
     out += '<td><input class="fin-field fin-percap-amt2" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt2))+'"></td>';
     out += '<td class="fin-percap-total" data-percap-idx="'+idx+'" style="text-align:right;">'+fmtMoney(total)+'</td>';
-    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['perCapita']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
@@ -1885,7 +1884,7 @@ function onFinanceClick(e){
   var addBtn = e.target.closest('.js-fin-add-row');
   if(addBtn){
     var kind = addBtn.dataset.kind;
-    if(kind==='ledger'){ financeState.ledger.push({issueDate:'', depositDate:'', desc:'', debit:0, deposit:0, memo:''}); }
+    if(kind==='ledger'){ financeState.ledger.push({date:'', desc:'', debit:0, deposit:0, memo:''}); }
     else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, paidDate:'', memo:''}); }
     markFinanceDirty(); renderFinanceBody();
     return;
