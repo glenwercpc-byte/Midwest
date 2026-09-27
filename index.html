@@ -297,22 +297,17 @@ body{
 .footer-note{text-align:center;color:var(--sub);font-size:11.5px;margin-top:6px;}
 
 /* ---------- Modal ---------- */
-#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,#deleteFinanceOverlay{
+#modalOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay{
   position:fixed;inset:0;background:rgba(20,20,15,.5);
   display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
 }
-#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#newFinanceOverlay.hidden,#monthlyEntryOverlay.hidden,#newAccountOverlay.hidden,#deleteFinanceOverlay.hidden{display:none;}
+#modalOverlay.hidden,#newOrgOverlay.hidden,#newMeetingOverlay.hidden,#saveChoiceOverlay.hidden,#newFinanceOverlay.hidden,#monthlyEntryOverlay.hidden,#newAccountOverlay.hidden{display:none;}
 #newOrgOverlay{z-index:130;}
 #newMeetingOverlay{z-index:130;}
 #saveChoiceOverlay{z-index:130;}
 #newFinanceOverlay{z-index:130;}
 #monthlyEntryOverlay{z-index:135;}
 #newAccountOverlay{z-index:135;}
-#deleteFinanceOverlay{z-index:135;}
-.dlg-danger-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
-.dlg-danger-actions button{padding:9px 18px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1px solid var(--edge);background:var(--white);color:var(--ink);}
-.dlg-danger-actions button.danger{background:#c0392b;border-color:#c0392b;color:#fff;}
-.dlg-danger-actions button.danger:disabled{opacity:.4;cursor:not-allowed;}
 .dlg-note{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 14px;white-space:normal;}
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
@@ -452,8 +447,6 @@ body{
   border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
   margin-bottom:40px;
 }
-/* 년도 선택 화면에서는 패널 폭을 2/3로 줄입니다 */
-.finance-panel.year-list-mode{max-width:800px;width:62.7vw;min-width:min(94vw,420px);}
 .finance-head{
   position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
   padding:14px 20px;border-bottom:1px solid var(--edge);background:var(--paper-deep);
@@ -546,21 +539,6 @@ body{
 }
 .finance-add-row-btn:hover{border-color:var(--gold);color:var(--gold);}
 .finance-table-wrap{overflow-x:auto;}
-.fin-year-list{max-width:520px;margin:10px auto;display:flex;flex-direction:column;gap:10px;}
-.fin-year-item{display:flex;gap:8px;align-items:stretch;}
-.fin-year-open{flex:1;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border:1px solid var(--edge);border-radius:8px;background:var(--white);cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;}
-.fin-year-open:hover{border-color:var(--gold);background:var(--paper-deep);}
-.fin-year-open .y{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--ink);}
-.fin-year-open .u{font-size:12px;color:var(--sub);}
-.fin-year-del{padding:0 16px;border:1px solid #e3b4ad;border-radius:8px;background:var(--white);color:#c0392b;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
-.fin-year-del:hover{background:#c0392b;color:#fff;border-color:#c0392b;}
-.ledger-summary{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:10px;font-size:12.5px;}
-.ledger-summary label{display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600;color:var(--ink);}
-.ledger-summary input{width:120px;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'Noto Sans KR',sans-serif;}
-.ledger-summary input.ledger-calc{background:var(--paper-deep);color:var(--ink);font-weight:700;cursor:default;}
-.ledger-summary label.pending,.ledger-summary label.pending input{color:#c0392b;}
-.ledger-summary label.final input{border-color:var(--ink);}
-.finance-table tr.ledger-pending td,.finance-table tr.ledger-pending td input{color:#c0392b;}
 
 .finance-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
 .finance-print-view .fp-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;text-align:center;margin:0 0 10px;}
@@ -604,7 +582,7 @@ body{
 .page-num{display:none;}
 @media print{
   body,#app{min-height:0!important;}
-  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,#deleteFinanceOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
+  .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
   .page::before{display:none!important;content:none!important;border:none!important;}
@@ -782,35 +760,15 @@ body{
     <div class="finance-head">
       <h3 id="financeTitle">💰 재정 관리</h3>
       <div class="finance-head-actions">
-        <span id="financeEditActions" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
-          <button class="tbtn" onclick="saveFinanceData()">저장</button>
-          <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
-          <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
-          <button class="tbtn" onclick="showFinanceYearList()">📅 년도 선택</button>
-        </span>
+        <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
+        <button class="tbtn" onclick="saveFinanceData()">저장</button>
+        <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
+        <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
         <button class="modal-close" onclick="closeFinancePanel()">✕</button>
       </div>
     </div>
     <div class="finance-body" id="financeBody">불러오는 중…</div>
     <div class="finance-print-view" id="financePrintView"></div>
-  </div>
-</div>
-
-<div id="deleteFinanceOverlay" class="hidden">
-  <div class="modal-box" style="max-width:400px;">
-    <div class="modal-head">
-      <h3 id="deleteFinanceTitle">재정 데이터 삭제</h3>
-      <button class="modal-close" onclick="closeDeleteFinanceDialog()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="dlg-note" id="deleteFinanceNote"></p>
-      <input class="dlg-input" id="deleteFinanceInput" type="text" inputmode="numeric" autocomplete="off">
-      <div class="dlg-danger-actions">
-        <button type="button" onclick="closeDeleteFinanceDialog()">취소</button>
-        <button type="button" class="danger" id="deleteFinanceConfirmBtn" disabled onclick="confirmDeleteFinance()">삭제</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -1569,113 +1527,13 @@ function setFinanceField(path, value){
   parent[path[path.length-1]] = value;
   markFinanceDirty();
 }
-var financeDirty = false;
-function markFinanceDirty(){ financeDirty = true; var b=document.getElementById('financeSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
-function markFinanceClean(){ financeDirty = false; var b=document.getElementById('financeSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
+function markFinanceDirty(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#b45309'; b.classList.remove('loading-pulse'); }
+function markFinanceClean(){ var b=document.getElementById('financeSaveBadge'); b.textContent='저장됨'; b.style.color='#2f6b3a'; b.classList.remove('loading-pulse'); }
 
 function openFinancePanel(){
   document.getElementById('financeOverlay').classList.remove('hidden');
-  // 저장하지 않은 작업이 남아 있으면 그 화면을 그대로 보여주고, 아니면 년도 선택부터 시작합니다.
-  if(financeState && financeDirty){ setFinanceEditMode(true); renderFinanceBody(); }
-  else { showFinanceYearList(true); }
+  if(!financeLoaded){ loadFinanceData(); } else { renderFinanceBody(); }
 }
-
-/* ---------- 년도 선택 / 삭제 ---------- */
-var financeYearsCache = [];
-function setFinanceEditMode(on){
-  document.getElementById('financeEditActions').style.display = on ? 'inline-flex' : 'none';
-  document.querySelector('#financeOverlay .finance-panel').classList.toggle('year-list-mode', !on);
-}
-function showFinanceYearList(skipDirtyCheck){
-  if(!skipDirtyCheck && financeDirty && !confirm('저장하지 않은 변경사항이 있습니다. 저장하지 않고 년도 선택으로 이동할까요?')) return;
-  setFinanceEditMode(false);
-  document.getElementById('financeTitle').textContent = '💰 재정 관리 — 년도 선택';
-  var body = document.getElementById('financeBody');
-  if(!isConfigured()){ body.innerHTML = '<div class="archive-empty">먼저 배포 URL을 설정해주세요.</div>'; return; }
-  body.innerHTML = '<div class="archive-empty loading-pulse">불러오는 중…</div>';
-  jsonp({action:'listFinanceYears'}).then(function(res){
-    if(!res || !res.ok){
-      body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'<br><br>Apps Script(Code.gs)를 새 버전으로 다시 배포했는지 확인해주세요.</div>';
-      return;
-    }
-    financeYearsCache = (res.items||[]).map(function(it){ return String(it.year); });
-    renderFinanceYearList(res.items||[]);
-  }).catch(function(err){
-    body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
-  });
-}
-function renderFinanceYearList(items){
-  var out = '<div class="fin-year-list">';
-  if(!items.length){
-    out += '<div class="archive-empty">저장된 재정 데이터가 없습니다.</div>';
-    out += '<div style="text-align:center;margin-top:14px;"><button type="button" class="finance-add-row-btn" onclick="openNewFinanceDialog()">+ 첫 연도 작성</button></div>';
-  }
-  items.forEach(function(it){
-    var when = it.updatedAt ? String(it.updatedAt).slice(0,10) : '';
-    out += '<div class="fin-year-item">';
-    out += '<button type="button" class="fin-year-open" onclick="openFinanceYear(\''+esc(it.year)+'\')"><span class="y">'+esc(it.year)+'년</span>'+(when?'<span class="u">마지막 저장 '+esc(when)+'</span>':'')+'</button>';
-    out += '<button type="button" class="fin-year-del" onclick="deleteFinanceYear(\''+esc(it.year)+'\')">삭제</button>';
-    out += '</div>';
-  });
-  out += '</div>';
-  document.getElementById('financeBody').innerHTML = out;
-}
-function openFinanceYear(year){
-  var body = document.getElementById('financeBody');
-  body.innerHTML = '<div class="archive-empty loading-pulse">'+esc(year)+'년 불러오는 중…</div>';
-  jsonp({action:'getFinance', year: year}).then(function(res){
-    if(res && res.ok){
-      financeState = res.finance ? res.finance : blankFinance(parseInt(year,10));
-      financeState.year = parseInt(year,10) || financeState.year;
-      financeLoaded = true;
-      markFinanceClean();
-      setFinanceEditMode(true);
-      renderFinanceBody();
-    } else {
-      body.innerHTML = '<div class="archive-empty">서버 오류:<br>'+esc(res && res.error ? res.error : '알 수 없는 오류')+'</div>';
-    }
-  }).catch(function(err){
-    body.innerHTML = '<div class="archive-empty">불러오기 실패:<br>'+esc(err && err.message ? err.message : String(err))+'</div>';
-  });
-}
-var deleteFinanceTarget = null;
-function deleteFinanceYear(year){
-  deleteFinanceTarget = String(year);
-  document.getElementById('deleteFinanceTitle').textContent = year+'년 재정 데이터 삭제';
-  document.getElementById('deleteFinanceNote').innerHTML = '<b style="color:#c0392b;">'+esc(year)+'년</b> 재정 데이터를 삭제합니다. 삭제하면 되돌릴 수 없습니다.<br>삭제하려면 아래 칸에 <b>'+esc(year)+'</b> 를 입력하세요.';
-  var input = document.getElementById('deleteFinanceInput');
-  input.value = ''; input.placeholder = String(year);
-  document.getElementById('deleteFinanceConfirmBtn').disabled = true;
-  document.getElementById('deleteFinanceOverlay').classList.remove('hidden');
-  setTimeout(function(){ input.focus(); }, 0);
-}
-function closeDeleteFinanceDialog(){
-  document.getElementById('deleteFinanceOverlay').classList.add('hidden');
-  deleteFinanceTarget = null;
-}
-function confirmDeleteFinance(){
-  var year = deleteFinanceTarget;
-  if(!year) return;
-  if(document.getElementById('deleteFinanceInput').value.trim()!==year) return;
-  closeDeleteFinanceDialog();
-  document.getElementById('financeBody').innerHTML = '<div class="archive-empty loading-pulse">'+esc(year)+'년 삭제 중…</div>';
-  postToScript({action:'deleteFinance', year: year}).then(function(){
-    if(financeState && String(financeState.year)===year){ financeState = null; financeLoaded = false; financeDirty = false; }
-    showFinanceYearList(true);
-  }).catch(function(err){
-    console.error(err);
-    alert('삭제 중 오류가 발생했습니다.');
-    showFinanceYearList(true);
-  });
-}
-// 년도를 정확히 입력해야 삭제 버튼이 켜지고, Enter로도 삭제할 수 있습니다.
-document.getElementById('deleteFinanceInput').addEventListener('input', function(e){
-  document.getElementById('deleteFinanceConfirmBtn').disabled = (e.target.value.trim()!==deleteFinanceTarget);
-});
-document.getElementById('deleteFinanceInput').addEventListener('keydown', function(e){
-  if(e.key==='Enter'){ e.preventDefault(); confirmDeleteFinance(); }
-});
-document.getElementById('deleteFinanceOverlay').addEventListener('click', function(e){ if(e.target.id==='deleteFinanceOverlay') closeDeleteFinanceDialog(); });
 function closeFinancePanel(){ document.getElementById('financeOverlay').classList.add('hidden'); }
 document.getElementById('financeOverlay').addEventListener('click', function(e){ if(e.target.id==='financeOverlay') closeFinancePanel(); });
 
@@ -1711,60 +1569,32 @@ function saveFinanceData(){
 }
 
 function openNewFinanceDialog(){
-  if(financeDirty && !confirm('저장하지 않은 변경사항이 있습니다. 저장하지 않고 새 연도를 작성할까요?')) return;
-  var maxYear = financeYearsCache.reduce(function(m,y){ return Math.max(m, parseInt(y,10)||0); }, 0);
-  if(financeState && financeState.year) maxYear = Math.max(maxYear, parseInt(financeState.year,10)||0);
-  document.getElementById('newFinanceYear').value = (maxYear || new Date().getFullYear()-1) + 1;
+  var suggested = (financeState && financeState.year ? parseInt(financeState.year,10) : new Date().getFullYear()) + 1;
+  document.getElementById('newFinanceYear').value = suggested;
   document.getElementById('newFinanceOverlay').classList.remove('hidden');
 }
 function closeNewFinanceDialog(){ document.getElementById('newFinanceOverlay').classList.add('hidden'); }
-function buildNewFinance(year, prevFin){
-  var fresh = blankFinance(year);
-  if(prevFin){
-    fresh.accounts.forEach(function(a){
-      var prev = (prevFin.accounts||[]).find(function(p){ return p.code===a.code; });
-      if(prev){ a.priorActual = finAccountActual(prev); }
-    });
-    fresh.openingBalance = finComputeTotals(prevFin).balance;
-    if(prevFin.perCapitaRates){ fresh.perCapitaRates = deepClone(prevFin.perCapitaRates); }
-    fresh.perCapita = deepClone(prevFin.perCapita||[]).map(function(p){
-      return {church:p.church, members:p.members, paidDate:'', memo:''};
-    });
-  }
-  return fresh;
-}
-function startNewFinance(fresh){
-  financeState = fresh;
-  financeLoaded = true;
-  if(financeYearsCache.indexOf(String(fresh.year))===-1) financeYearsCache.push(String(fresh.year));
-  closeNewFinanceDialog();
-  setFinanceEditMode(true);
-  renderFinanceBody();
-  markFinanceDirty();
-  saveFinanceData();
-}
 function confirmNewFinance(mode){
   var year = parseInt(document.getElementById('newFinanceYear').value, 10);
   if(!year){ alert('생성년도를 입력해주세요.'); return; }
-  if(financeYearsCache.indexOf(String(year))>-1){
-    alert(year+'년 재정 데이터가 이미 있습니다. 년도 선택 화면에서 열거나, 먼저 삭제한 뒤 다시 만들어주세요.');
-    return;
+  var fresh = blankFinance(year);
+  if(mode==='carry' && financeState){
+    fresh.accounts.forEach(function(a){
+      var prev = financeState.accounts.find(function(p){ return p.code===a.code; });
+      if(prev){ a.priorActual = finAccountActual(prev); }
+    });
+    fresh.openingBalance = finComputeTotals(financeState).balance;
+    if(financeState.perCapitaRates){ fresh.perCapitaRates = deepClone(financeState.perCapitaRates); }
+    fresh.perCapita = deepClone(financeState.perCapita||[]).map(function(p){
+      return {church:p.church, members:p.members, paidDate:'', memo:''};
+    });
   }
-  if(mode!=='carry'){ startNewFinance(buildNewFinance(year, null)); return; }
-  var prevYear = year-1;
-  if(financeState && String(financeState.year)===String(prevYear)){
-    startNewFinance(buildNewFinance(year, financeState)); return;
-  }
-  // 지금 열려 있는 해가 전년도가 아니면 서버에서 전년도를 불러와 이어받습니다.
-  jsonp({action:'getFinance', year: prevYear}).then(function(res){
-    if(res && res.ok && res.finance){
-      startNewFinance(buildNewFinance(year, res.finance));
-    } else if(confirm(prevYear+'년 재정 데이터가 없습니다. 숫자 없이 새로 작성할까요?')){
-      startNewFinance(buildNewFinance(year, null));
-    }
-  }).catch(function(err){
-    alert('전년도 데이터를 불러오지 못했습니다: '+(err && err.message ? err.message : err));
-  });
+  financeState = fresh;
+  financeLoaded = true;
+  closeNewFinanceDialog();
+  renderFinanceBody();
+  markFinanceDirty();
+  saveFinanceData();
 }
 
 function renderFinanceBody(){
@@ -1824,7 +1654,7 @@ function renderFinanceAccountSection(title, group){
   }
   out += '</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:200px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
+  out += '<th style="width:64px;">계정</th><th>내용</th><th style="width:165px;">Memo</th><th style="width:110px;">전년 실적</th><th style="width:110px;">'+esc(fin.year)+' 예산</th><th style="width:120px;">'+esc(fin.year)+' 실적</th>';
   out += '</tr></thead><tbody>';
 
   categories.forEach(function(cat){
@@ -1865,66 +1695,24 @@ function renderFinanceAccountSection(title, group){
   return out;
 }
 
-/** 예전 형식(date/desc/memo)의 거래 행을 새 형식으로 옮깁니다.
-    date → 발행일, desc → Pay to order, memo → 내용 */
-function normalizeLedgerRow(row){
-  if(!row) return row;
-  if(row.issueDate===undefined && row.date!==undefined){ row.issueDate = row.date; }
-  if(row.payTo===undefined && row.desc!==undefined){ row.payTo = row.desc; }
-  if(row.note===undefined && row.memo!==undefined){ row.note = row.memo; }
-  delete row.date; delete row.desc; delete row.memo;
-  ['checkNo','issueDate','depositDate','payTo','note'].forEach(function(k){ if(row[k]===undefined) row[k]=''; });
-  if(row.debit===undefined) row.debit = 0;
-  if(row.deposit===undefined) row.deposit = 0;
-  return row;
-}
-function ledgerNum(v){ return parseFloat(parseMoneyInput(String(v==null?'':v)))||0; }
-function isLedgerPending(row){ return String(row.note||'').indexOf('미결재')>-1; }
-
-/** 은행 거래 내역의 행별 잔액, 기말 잔액, 미결재 수표, 최종 잔액을 계산합니다. */
-function computeLedger(fin){
-  var running = ledgerNum(fin.openingBalance);
-  var balances = [], pending = 0;
-  (fin.ledger||[]).forEach(function(row){
-    running += ledgerNum(row.deposit) - ledgerNum(row.debit);
-    balances.push(running);
-    if(isLedgerPending(row)) pending += ledgerNum(row.debit);
-  });
-  return { balances: balances, closing: running, pending: pending, final: running - pending };
-}
-
 function renderFinanceLedgerSection(){
   var fin = financeState;
-  if(!fin.ledger) fin.ledger = [];
-  fin.ledger.forEach(normalizeLedgerRow);
-  var calc = computeLedger(fin);
-
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
-  out += '<div class="ledger-summary">';
-  out += '<label>기초 잔액(Opening Balance)<input class="fin-field" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></label>';
-  out += '<label>기말 잔액<input class="ledger-calc" id="ledgerClosing" readonly tabindex="-1" value="'+esc(fmtMoney(calc.closing))+'"></label>';
-  out += '<label class="pending">미결재 수표<input class="ledger-calc" id="ledgerPending" readonly tabindex="-1" value="'+esc(fmtMoney(calc.pending))+'"></label>';
-  out += '<label class="final">최종 잔액<input class="ledger-calc" id="ledgerFinal" readonly tabindex="-1" value="'+esc(fmtMoney(calc.final))+'"></label>';
-  out += '</div>';
-
-  out += '<div class="finance-table-wrap"><table class="finance-table ledger-table"><thead><tr>';
-  out += '<th style="width:72px;">Check #</th><th style="width:96px;">발행일</th><th style="width:96px;">입금일</th><th>Pay to order</th>';
-  out += '<th style="width:100px;">Debit</th><th style="width:100px;">Deposit</th><th style="width:110px;">Balance</th><th>내용</th><th style="width:34px;"></th>';
+  out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fin.openingBalance)+'"></div>';
+  out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
+  out += '<th style="width:80px;">발행일</th><th style="width:80px;">입금일</th><th>내용</th><th style="width:100px;">출금</th><th style="width:100px;">입금</th><th style="width:110px;">잔액</th><th>메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
+  var running = parseFloat(fin.openingBalance)||0;
   fin.ledger.forEach(function(row, idx){
-    function field(key, align, money){
-      var v = money ? fmtMoney(ledgerNum(row[key])) : row[key];
-      return '<td><input class="fin-field'+(money?' ledger-money':'')+'" style="text-align:'+align+';" data-path="'+esc(JSON.stringify(['ledger',idx,key]))+'" value="'+esc(v)+'"></td>';
-    }
-    out += '<tr class="ledger-row'+(isLedgerPending(row)?' ledger-pending':'')+'" data-ledger-idx="'+idx+'">';
-    out += field('checkNo','center');
-    out += field('issueDate','center');
-    out += field('depositDate','center');
-    out += field('payTo','left');
-    out += field('debit','right',true);
-    out += field('deposit','right',true);
-    out += '<td class="ledger-balance" data-ledger-idx="'+idx+'" style="text-align:right;">'+fmtMoney(calc.balances[idx])+'</td>';
-    out += field('note','left');
+    running += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
+    out += '<tr>';
+    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['ledger',idx,'issueDate']))+'" value="'+esc(row.issueDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['ledger',idx,'depositDate']))+'" value="'+esc(row.depositDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'desc']))+'" value="'+esc(row.desc)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(row.debit)+'"></td>';
+    out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(row.deposit)+'"></td>';
+    out += '<td style="text-align:right;">'+fmtMoney(running)+'</td>';
+    out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
   });
@@ -1934,22 +1722,6 @@ function renderFinanceLedgerSection(){
   return out;
 }
 
-/** Debit/Deposit/기초 잔액/내용이 바뀔 때 전체를 다시 그리지 않고 잔액 칸과 요약만 갱신합니다. */
-function updateLedgerDisplays(){
-  var fin = financeState;
-  if(!fin || !fin.ledger) return;
-  var calc = computeLedger(fin);
-  fin.ledger.forEach(function(row, idx){
-    var cell = document.querySelector('.ledger-balance[data-ledger-idx="'+idx+'"]');
-    if(cell) cell.textContent = fmtMoney(calc.balances[idx]);
-    var tr = document.querySelector('.ledger-row[data-ledger-idx="'+idx+'"]');
-    if(tr) tr.classList.toggle('ledger-pending', isLedgerPending(row));
-  });
-  var c = document.getElementById('ledgerClosing'); if(c) c.value = fmtMoney(calc.closing);
-  var pd = document.getElementById('ledgerPending'); if(pd) pd.value = fmtMoney(calc.pending);
-  var f = document.getElementById('ledgerFinal'); if(f) f.value = fmtMoney(calc.final);
-}
-
 function renderFinancePerCapitaSection(){
   var fin = financeState;
   if(!fin.perCapitaRates) fin.perCapitaRates = {perCapita:34, mission:15};
@@ -1957,10 +1729,10 @@ function renderFinancePerCapitaSection(){
   var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
   var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:314px;">교회명</th><th style="width:64px;text-align:center;">교인수</th>';
+  out += '<th>교회명</th><th style="width:64px;text-align:center;">교인수</th>';
   out += '<th style="width:140px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
   out += '<th style="width:140px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
-  out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th>메모</th><th style="width:34px;"></th>';
+  out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th style="width:80px;">메모</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   var grandTotal=0, memberTotal=0, sum1=0, sum2=0;
   fin.perCapita.forEach(function(row, idx){
@@ -1974,7 +1746,7 @@ function renderFinancePerCapitaSection(){
     out += '<td><input class="fin-field fin-percap-amt1" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt1))+'"></td>';
     out += '<td><input class="fin-field fin-percap-amt2" readonly data-percap-idx="'+idx+'" value="'+esc(fmtMoney(amt2))+'"></td>';
     out += '<td class="fin-percap-total" data-percap-idx="'+idx+'" style="text-align:right;">'+fmtMoney(total)+'</td>';
-    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" placeholder="00/00/00" data-path="'+esc(JSON.stringify(['perCapita',idx,'paidDate']))+'" value="'+esc(row.paidDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['perCapita',idx,'memo']))+'" value="'+esc(row.memo)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['perCapita']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
@@ -2113,7 +1885,7 @@ function onFinanceClick(e){
   var addBtn = e.target.closest('.js-fin-add-row');
   if(addBtn){
     var kind = addBtn.dataset.kind;
-    if(kind==='ledger'){ financeState.ledger.push({checkNo:'', issueDate:'', depositDate:'', payTo:'', debit:0, deposit:0, note:''}); }
+    if(kind==='ledger'){ financeState.ledger.push({issueDate:'', depositDate:'', desc:'', debit:0, deposit:0, memo:''}); }
     else if(kind==='percap'){ financeState.perCapita.push({church:'', members:0, paidDate:'', memo:''}); }
     markFinanceDirty(); renderFinanceBody();
     return;
@@ -2139,21 +1911,14 @@ function onFinanceInput(e){
     var path = JSON.parse(e.target.dataset.path);
     var lastKey = path[path.length-1];
     var value = e.target.value;
-    if(lastKey==='priorActual' || lastKey==='budget' || (path[0]==='ledger' && (lastKey==='debit' || lastKey==='deposit'))){ value = parseMoneyInput(value); }
+    if(lastKey==='priorActual' || lastKey==='budget'){ value = parseMoneyInput(value); }
     setFinanceField(path, value);
     if(path[0]==='perCapita' && lastKey==='members'){ updatePerCapitaDisplays(); }
     else if(path[0]==='perCapitaRates'){ updatePerCapitaDisplays(); }
-    else if(path[0]==='openingBalance' || path[0]==='ledger'){ updateLedgerDisplays(); }
   }
 }
 document.getElementById('financeOverlay').addEventListener('click', onFinanceClick);
 document.getElementById('financeOverlay').addEventListener('input', onFinanceInput);
-/* Debit/Deposit 칸은 입력을 마치고 나가면 $0.00 형식으로 다시 표시합니다. */
-document.getElementById('financeOverlay').addEventListener('focusout', function(e){
-  if(e.target.classList && e.target.classList.contains('ledger-money')){
-    e.target.value = fmtMoney(ledgerNum(e.target.value));
-  }
-});
 
 /* 재정 입력칸을 클릭(포커스)하면 내용을 전체 선택해서 바로 새 값을 입력하거나
    고칠 수 있게 합니다. (focus는 버블링이 안 되므로 focusin으로 위임합니다) */
@@ -2309,9 +2074,7 @@ document.addEventListener('keydown', function(e){
     var newFinanceOpen = !document.getElementById('newFinanceOverlay').classList.contains('hidden');
     var monthlyOpen = !document.getElementById('monthlyEntryOverlay').classList.contains('hidden');
     var newAccountOpen = !document.getElementById('newAccountOverlay').classList.contains('hidden');
-    var deleteFinOpen = !document.getElementById('deleteFinanceOverlay').classList.contains('hidden');
-    if(deleteFinOpen){ closeDeleteFinanceDialog(); }
-    else if(newAccountOpen){ cancelNewAccountEntry(); }
+    if(newAccountOpen){ cancelNewAccountEntry(); }
     else if(newFinanceOpen){ closeNewFinanceDialog(); }
     else if(monthlyOpen){ closeMonthlyEntry(); }
     else { closeFinancePanel(); }
