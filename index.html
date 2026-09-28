@@ -1963,7 +1963,7 @@ function renderFinancePerCapitaSection(){
   var rate2 = parseFloat(fin.perCapitaRates.mission)||0;
   var out = '<div class="finance-section"><h4>교회별 상회비 현황 (Per-Capita by Church)</h4>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:214px;">교회명</th><th style="width:64px;text-align:center;">교인수</th>';
+  out += '<th style="width:264px;">교회명</th><th style="width:64px;text-align:center;">교인수</th>';
   out += '<th style="width:140px;">상회비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','perCapita']))+'" value="'+esc(fin.perCapitaRates.perCapita)+'">)</th>';
   out += '<th style="width:140px;">선교비율($<input class="fin-field fin-rate-input" data-path="'+esc(JSON.stringify(['perCapitaRates','mission']))+'" value="'+esc(fin.perCapitaRates.mission)+'">)</th>';
   out += '<th style="width:110px;">합계</th><th style="width:88px;text-align:center;">완납일</th><th>메모</th><th style="width:34px;"></th>';
