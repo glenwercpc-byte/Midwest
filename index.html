@@ -1705,8 +1705,17 @@ function renderFinanceAccountSection(title, group){
 function renderFinanceLedgerSection(){
   var fin = financeState;
   if(fin.pendingChecks==null) fin.pendingChecks = 0;
+  var finalBalance = parseFloat(fin.openingBalance)||0;
+  fin.ledger.forEach(function(row){ finalBalance += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0); });
+  var bankBalance = finalBalance + (parseFloat(fin.pendingChecks)||0);
+
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
-  out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fmtMoney(fin.openingBalance))+'"></div>';
+  out += '<div class="finance-ledger-summary" style="margin-bottom:10px;border-top:none;padding-top:0;">';
+  out += '<div><span class="lbl">기초 잔액 (Opening Balance)</span><input class="fin-field" style="width:110px;display:inline-block;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fmtMoney(fin.openingBalance))+'"></div>';
+  out += '<div><span class="lbl">기말 잔액 (Balance)</span><span class="val">'+fmtMoney(finalBalance)+'</span></div>';
+  out += '<div><span class="lbl">미결재 수표 (Uncleared Checks)</span><input class="fin-field" style="width:110px;display:inline-block;" data-path="'+esc(JSON.stringify(['pendingChecks']))+'" value="'+esc(fmtMoney(fin.pendingChecks))+'"></div>';
+  out += '<div><span class="lbl">최종 잔액 (Bank Balance)</span><span class="val">'+fmtMoney(bankBalance)+'</span></div>';
+  out += '</div>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
   out += '<th style="width:120px;">Check #</th><th style="width:76px;">발행일</th><th style="width:76px;">입금일</th><th style="width:260px;">Pay to order</th><th style="width:90px;">Debit</th><th style="width:90px;">Deposit</th><th style="width:100px;">Balance</th><th>Description</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
@@ -1729,12 +1738,6 @@ function renderFinanceLedgerSection(){
   });
   out += '</tbody></table></div>';
   out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="ledger">+ 거래 추가</button>';
-  var bankBalance = running + (parseFloat(fin.pendingChecks)||0);
-  out += '<div class="finance-ledger-summary">';
-  out += '<div><span class="lbl">기말 잔액 (Balance)</span><span class="val">'+fmtMoney(running)+'</span></div>';
-  out += '<div><span class="lbl">미결재 수표 (Uncleared Checks)</span><input class="fin-field" style="width:110px;display:inline-block;" data-path="'+esc(JSON.stringify(['pendingChecks']))+'" value="'+esc(fmtMoney(fin.pendingChecks))+'"></div>';
-  out += '<div><span class="lbl">최종 잔액 (Bank Balance)</span><span class="val">'+fmtMoney(bankBalance)+'</span></div>';
-  out += '</div>';
   out += '</div>';
   return out;
 }
