@@ -1700,7 +1700,7 @@ function renderFinanceLedgerSection(){
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
   out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fmtMoney(fin.openingBalance))+'"></div>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
-  out += '<th style="width:96px;">Check #</th><th style="width:76px;">발행일</th><th style="width:76px;">입금일</th><th style="width:130px;">Pay to order</th><th style="width:90px;">Debit</th><th style="width:90px;">Deposit</th><th style="width:100px;">Balance</th><th>Description</th><th style="width:34px;"></th>';
+  out += '<th style="width:96px;">Check #</th><th style="width:76px;">발행일</th><th style="width:76px;">입금일</th><th style="width:260px;">Pay to order</th><th style="width:90px;">Debit</th><th style="width:90px;">Deposit</th><th style="width:100px;">Balance</th><th>Description</th><th style="width:34px;"></th>';
   out += '</tr></thead><tbody>';
   var running = parseFloat(fin.openingBalance)||0;
   fin.ledger.forEach(function(row, idx){
