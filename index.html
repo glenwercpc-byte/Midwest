@@ -538,6 +538,13 @@ body{
   padding:6px 10px;border-radius:6px;cursor:pointer;margin-top:6px;font-family:'Noto Sans KR',sans-serif;
 }
 .finance-add-row-btn:hover{border-color:var(--gold);color:var(--gold);}
+.finance-ledger-summary{
+  display:flex;gap:24px;flex-wrap:wrap;margin-top:12px;padding-top:12px;
+  border-top:1px solid var(--edge);
+}
+.finance-ledger-summary > div{display:flex;flex-direction:column;gap:3px;}
+.finance-ledger-summary .lbl{font-size:11px;color:var(--sub);}
+.finance-ledger-summary .val{font-family:'Noto Serif KR',serif;font-weight:700;font-size:14px;color:var(--ink);}
 .finance-table-wrap{overflow-x:auto;}
 
 .finance-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
@@ -1478,7 +1485,7 @@ function blankFinance(year){
       memo:'', priorActual:0, budget:0, monthly:[0,0,0,0,0,0,0,0,0,0,0,0]
     };
   });
-  return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [], perCapitaRates: {perCapita:34, mission:15} };
+  return { year: year, openingBalance: 0, accounts: accounts, ledger: [], perCapita: [], perCapitaRates: {perCapita:34, mission:15}, pendingChecks: 0 };
 }
 
 var financeState = null;
@@ -1697,6 +1704,7 @@ function renderFinanceAccountSection(title, group){
 
 function renderFinanceLedgerSection(){
   var fin = financeState;
+  if(fin.pendingChecks==null) fin.pendingChecks = 0;
   var out = '<div class="finance-section"><h4>은행 거래 내역 (Bank Ledger)</h4>';
   out += '<div style="margin-bottom:8px;font-size:12.5px;">기초 잔액(Opening Balance): <input class="fin-field" style="width:120px;display:inline-block;text-align:right;border:1px solid var(--edge);border-radius:4px;padding:3px 5px;" data-path="'+esc(JSON.stringify(['openingBalance']))+'" value="'+esc(fmtMoney(fin.openingBalance))+'"></div>';
   out += '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>';
@@ -1705,21 +1713,28 @@ function renderFinanceLedgerSection(){
   var running = parseFloat(fin.openingBalance)||0;
   fin.ledger.forEach(function(row, idx){
     running += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
+    var checkVal = (row.checkNum!=null && row.checkNum!=='') ? row.checkNum : (row.checkNo || '');
+    var descVal = (row.description!=null && row.description!=='') ? row.description : (row.desc || row.note || row.memo || '');
     out += '<tr>';
-    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['ledger',idx,'checkNum']))+'" value="'+esc(row.checkNum)+'"></td>';
+    out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['ledger',idx,'checkNum']))+'" value="'+esc(checkVal)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['ledger',idx,'issueDate']))+'" value="'+esc(row.issueDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:center;" data-path="'+esc(JSON.stringify(['ledger',idx,'depositDate']))+'" value="'+esc(row.depositDate)+'"></td>';
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'payTo']))+'" value="'+esc(row.payTo)+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'debit']))+'" value="'+esc(fmtMoney(row.debit))+'"></td>';
     out += '<td><input class="fin-field" data-path="'+esc(JSON.stringify(['ledger',idx,'deposit']))+'" value="'+esc(fmtMoney(row.deposit))+'"></td>';
     out += '<td style="text-align:right;">'+fmtMoney(running)+'</td>';
-    var descVal = (row.description!=null && row.description!=='') ? row.description : (row.desc || row.memo || '');
     out += '<td><input class="fin-field" style="text-align:left;" data-path="'+esc(JSON.stringify(['ledger',idx,'description']))+'" value="'+esc(descVal)+'"></td>';
     out += '<td><button type="button" class="finance-row-del js-fin-row-del" data-listpath="'+esc(JSON.stringify(['ledger']))+'" data-idx="'+idx+'">×</button></td>';
     out += '</tr>';
   });
   out += '</tbody></table></div>';
   out += '<button type="button" class="finance-add-row-btn js-fin-add-row" data-kind="ledger">+ 거래 추가</button>';
+  var bankBalance = running + (parseFloat(fin.pendingChecks)||0);
+  out += '<div class="finance-ledger-summary">';
+  out += '<div><span class="lbl">기말 잔액 (Balance)</span><span class="val">'+fmtMoney(running)+'</span></div>';
+  out += '<div><span class="lbl">미결재 수표 (Uncleared Checks)</span><input class="fin-field" style="width:110px;display:inline-block;" data-path="'+esc(JSON.stringify(['pendingChecks']))+'" value="'+esc(fmtMoney(fin.pendingChecks))+'"></div>';
+  out += '<div><span class="lbl">최종 잔액 (Bank Balance)</span><span class="val">'+fmtMoney(bankBalance)+'</span></div>';
+  out += '</div>';
   out += '</div>';
   return out;
 }
@@ -1920,7 +1935,7 @@ function onFinanceInput(e){
     var path = JSON.parse(e.target.dataset.path);
     var lastKey = path[path.length-1];
     var value = e.target.value;
-    if(lastKey==='priorActual' || lastKey==='budget' || lastKey==='openingBalance' || (path[0]==='ledger' && (lastKey==='debit' || lastKey==='deposit'))){ value = parseMoneyInput(value); }
+    if(lastKey==='priorActual' || lastKey==='budget' || lastKey==='openingBalance' || lastKey==='pendingChecks' || (path[0]==='ledger' && (lastKey==='debit' || lastKey==='deposit'))){ value = parseMoneyInput(value); }
     if(path[0]==='ledger' && (lastKey==='issueDate' || lastKey==='depositDate')){
       value = formatDateInput(value);
       if(e.target.value !== value) e.target.value = value;
