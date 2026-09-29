@@ -2023,13 +2023,13 @@ function buildFinancePrintView(){
   }
 
   out += '<div class="fp-section-title">수입 (Income)</div>';
-  out += '<table><thead><tr><th>계정</th><th>내용</th><th>Memo</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += '<table><thead><tr><th style="width:6%;">계정</th><th style="width:30%;">내용</th><th style="width:16%;">Memo</th><th style="width:16%;">전년실적</th><th style="width:16%;">'+esc(fin.year)+'예산</th><th style="width:16%;">'+esc(fin.year)+'실적</th></tr></thead><tbody>';
   out += accountRows('income');
   out += '<tr class="fp-total"><td colspan="3">Total Revenues</td><td class="fp-num">'+fmtMoney(totals.totalPriorRevenue+totals.carryForwardPrior)+'</td><td class="fp-num">'+fmtMoney(totals.totalBudgetRevenue+totals.carryForwardBudget)+'</td><td class="fp-num">'+fmtMoney(totals.totalIncomeRevenue)+'</td></tr>';
   out += '</tbody></table>';
 
   out += '<div class="fp-section-title">지출 (Expense)</div>';
-  out += '<table><thead><tr><th>계정</th><th>내용</th><th>Memo</th><th>전년실적</th><th>'+esc(fin.year)+'예산</th><th>'+esc(fin.year)+'실적</th></tr></thead><tbody>';
+  out += '<table><thead><tr><th style="width:6%;">계정</th><th style="width:30%;">내용</th><th style="width:16%;">Memo</th><th style="width:16%;">전년실적</th><th style="width:16%;">'+esc(fin.year)+'예산</th><th style="width:16%;">'+esc(fin.year)+'실적</th></tr></thead><tbody>';
   out += accountRows('expense');
   out += '<tr class="fp-total"><td colspan="3">Total Expenses</td><td class="fp-num">'+fmtMoney(totals.totalPriorExpense)+'</td><td class="fp-num">'+fmtMoney(totals.totalBudgetExpense)+'</td><td class="fp-num">'+fmtMoney(totals.totalExpense)+'</td></tr>';
   out += '</tbody></table>';
@@ -2055,7 +2055,7 @@ function buildFinancePrintView(){
     var lBank = lFinal + (parseFloat(fin.pendingChecks)||0);
     out += '<div class="fp-section-title fp-page-break">은행 거래 내역 (Bank Ledger)</div>';
     out += '<div style="font-size:11px;margin-bottom:6px;">기초 잔액: '+fmtMoney(fin.openingBalance)+' &nbsp;|&nbsp; 기말 잔액: '+fmtMoney(lFinal)+' &nbsp;|&nbsp; 미결재 수표: '+fmtMoney(fin.pendingChecks)+' &nbsp;|&nbsp; 최종 잔액: '+fmtMoney(lBank)+'</div>';
-    out += '<table><thead><tr><th>Check #</th><th>발행일</th><th>입금일</th><th>Pay to order</th><th>Debit</th><th>Deposit</th><th>Balance</th><th>Description</th></tr></thead><tbody>';
+    out += '<table><thead><tr><th style="width:6%;">Check #</th><th style="width:6%;">발행일</th><th style="width:6%;">입금일</th><th style="width:28%;">Pay to order</th><th style="width:6%;">Debit</th><th style="width:6%;">Deposit</th><th style="width:6%;">Balance</th><th style="width:36%;">Description</th></tr></thead><tbody>';
     var lRunning = parseFloat(fin.openingBalance)||0;
     fin.ledger.forEach(function(row){
       lRunning += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
