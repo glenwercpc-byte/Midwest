@@ -550,13 +550,14 @@ body{
 
 .finance-print-view{display:none;font-family:'Noto Sans KR',sans-serif;color:#111;}
 .finance-print-view .fp-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;text-align:center;margin:0 0 10px;}
-.finance-print-view table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-.finance-print-view th,.finance-print-view td{border:1px solid #999;padding:4px 6px;font-size:10.5px;}
+.finance-print-view table{width:100%;border-collapse:collapse;margin-bottom:16px;table-layout:fixed;}
+.finance-print-view th,.finance-print-view td{border:1px solid #999;padding:4px 6px;font-size:10.5px;word-wrap:break-word;overflow-wrap:break-word;}
 .finance-print-view th{background:#eee;font-weight:700;text-align:center;}
 .finance-print-view td.fp-num{text-align:right;}
 .finance-print-view tr.fp-subtotal td{background:#F3ECDA;font-weight:700;}
 .finance-print-view tr.fp-total td{background:#ddd;font-weight:700;}
 .finance-print-view .fp-section-title{font-family:'Noto Serif KR',serif;font-weight:700;font-size:12.5px;margin:14px 0 4px;}
+.finance-print-view .fp-page-break{page-break-before:always;break-before:page;}
 
 .line.search-hit{background:#fff3c4;border-radius:6px;}
 .line.search-hit-current{background:#ffe08a;border-radius:6px;box-shadow:inset 0 0 0 2px var(--gold);}
@@ -2038,11 +2039,29 @@ function buildFinancePrintView(){
   if(fin.perCapita && fin.perCapita.length){
     var pcRates = fin.perCapitaRates || {perCapita:34, mission:15};
     var pr1 = parseFloat(pcRates.perCapita)||0, pr2 = parseFloat(pcRates.mission)||0;
-    out += '<div class="fp-section-title">교회별 상회비 현황</div>';
+    out += '<div class="fp-section-title fp-page-break">교회별 상회비 현황</div>';
     out += '<table><thead><tr><th>교회명</th><th>교인수</th><th>상회비율($'+esc(pcRates.perCapita)+')</th><th>선교비율($'+esc(pcRates.mission)+')</th><th>합계</th><th>완납일</th></tr></thead><tbody>';
     fin.perCapita.forEach(function(row){
       var members = parseFloat(row.members)||0;
       out += '<tr><td>'+esc(row.church)+'</td><td class="fp-num">'+members+'</td><td class="fp-num">'+fmtMoney(members*pr1)+'</td><td class="fp-num">'+fmtMoney(members*pr2)+'</td><td class="fp-num">'+fmtMoney(members*(pr1+pr2))+'</td><td>'+esc(row.paidDate)+'</td></tr>';
+    });
+    out += '</tbody></table>';
+  }
+
+  if(fin.ledger && fin.ledger.length){
+    if(fin.pendingChecks==null) fin.pendingChecks = 0;
+    var lFinal = parseFloat(fin.openingBalance)||0;
+    fin.ledger.forEach(function(row){ lFinal += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0); });
+    var lBank = lFinal + (parseFloat(fin.pendingChecks)||0);
+    out += '<div class="fp-section-title fp-page-break">은행 거래 내역 (Bank Ledger)</div>';
+    out += '<div style="font-size:11px;margin-bottom:6px;">기초 잔액: '+fmtMoney(fin.openingBalance)+' &nbsp;|&nbsp; 기말 잔액: '+fmtMoney(lFinal)+' &nbsp;|&nbsp; 미결재 수표: '+fmtMoney(fin.pendingChecks)+' &nbsp;|&nbsp; 최종 잔액: '+fmtMoney(lBank)+'</div>';
+    out += '<table><thead><tr><th>Check #</th><th>발행일</th><th>입금일</th><th>Pay to order</th><th>Debit</th><th>Deposit</th><th>Balance</th><th>Description</th></tr></thead><tbody>';
+    var lRunning = parseFloat(fin.openingBalance)||0;
+    fin.ledger.forEach(function(row){
+      lRunning += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
+      var checkVal = (row.checkNum!=null && row.checkNum!=='') ? row.checkNum : (row.checkNo || '');
+      var descVal = (row.description!=null && row.description!=='') ? row.description : (row.desc || row.note || row.memo || '');
+      out += '<tr><td>'+esc(checkVal)+'</td><td>'+esc(row.issueDate)+'</td><td>'+esc(row.depositDate)+'</td><td>'+esc(row.payTo)+'</td><td class="fp-num">'+fmtMoney(row.debit)+'</td><td class="fp-num">'+fmtMoney(row.deposit)+'</td><td class="fp-num">'+fmtMoney(lRunning)+'</td><td>'+esc(descVal)+'</td></tr>';
     });
     out += '</tbody></table>';
   }
