@@ -2055,7 +2055,7 @@ function buildFinancePrintView(){
     var lBank = lFinal + (parseFloat(fin.pendingChecks)||0);
     out += '<div class="fp-section-title fp-page-break">은행 거래 내역 (Bank Ledger)</div>';
     out += '<div style="font-size:11px;margin-bottom:6px;">기초 잔액: '+fmtMoney(fin.openingBalance)+' &nbsp;|&nbsp; 기말 잔액: '+fmtMoney(lFinal)+' &nbsp;|&nbsp; 미결재 수표: '+fmtMoney(fin.pendingChecks)+' &nbsp;|&nbsp; 최종 잔액: '+fmtMoney(lBank)+'</div>';
-    out += '<table><thead><tr><th style="width:6%;">Check #</th><th style="width:6%;">발행일</th><th style="width:6%;">입금일</th><th style="width:28%;">Pay to order</th><th style="width:6%;">Debit</th><th style="width:6%;">Deposit</th><th style="width:6%;">Balance</th><th style="width:36%;">Description</th></tr></thead><tbody>';
+    out += '<table><thead><tr><th style="width:6%;">Check #</th><th style="width:6%;">발행일</th><th style="width:6%;">입금일</th><th style="width:19%;">Pay to order</th><th style="width:9%;">Debit</th><th style="width:9%;">Deposit</th><th style="width:9%;">Balance</th><th style="width:36%;">Description</th></tr></thead><tbody>';
     var lRunning = parseFloat(fin.openingBalance)||0;
     fin.ledger.forEach(function(row){
       lRunning += (parseFloat(row.deposit)||0) - (parseFloat(row.debit)||0);
