@@ -86,7 +86,7 @@ body{
   font-family:'Noto Serif KR',serif;
   font-weight:600;font-size:15px;
   letter-spacing:.02em;
-  white-space:nowrap;cursor:default;
+  white-space:nowrap;cursor:pointer;
 }
 .meeting-menu{
   position:absolute;top:calc(100% + 6px);left:0;
@@ -705,7 +705,7 @@ body{
       <button class="tbtn" id="tocToggleBtn" onclick="toggleTocPanel()">☰ 회순</button>
       <div class="brand-dropdown">
         <div class="brand-row">
-          <div class="brand">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
+          <div class="brand" onclick="showModeLanding()" title="시작 모드 선택 화면으로">중서부 한미노회 회의안<br><small id="brandSub">제 — 차 정기노회</small></div>
           <button type="button" class="tbtn" onclick="toggleMeetingMenu(event)">회차 선택</button>
         </div>
         <div class="meeting-menu hidden" id="meetingMenu">
@@ -899,7 +899,7 @@ body{
     <div class="modal-body">
       <p class="dlg-note" id="conflictWarnMessage" style="white-space:pre-line;"></p>
       <div class="dlg-actions">
-        <button type="button" onclick="conflictWarnConfirm()">그래도 덮어쓰기</button>
+        <button type="button" onclick="conflictWarnConfirm()">저장 확인</button>
         <button type="button" onclick="conflictWarnCancel()">취소</button>
       </div>
     </div>
@@ -2321,7 +2321,7 @@ function saveMeeting(){
       showConflictWarning(
         '다른 사람이 이 회의안(제 '+m.ordinal+'차)을 방금 먼저 저장한 것 같습니다.\n'+
         '(마지막 저장 시각: '+serverUpdatedAt+')\n\n'+
-        '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
+        '저장을 계속 진행하시겠습니까?\n'+
         '"취소"를 누르시면 저장하지 않습니다 — 보관함에서 최신 내용을 다시 불러오신 뒤 이어서 수정하시길 권장합니다.',
         function(){ doSaveMeeting_(); },
         function(){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse'); }
@@ -2635,7 +2635,7 @@ function saveOrgData(){
       showConflictWarning(
         '다른 사람이 '+orgState.year+'년 조직표를 방금 먼저 저장한 것 같습니다.\n'+
         '(마지막 저장 시각: '+serverUpdatedAt+')\n\n'+
-        '지금 화면 내용으로 덮어쓰시겠습니까?\n'+
+        '저장을 계속 진행하시겠습니까?\n'+
         '"취소"를 누르시면 저장하지 않습니다 — 패널을 닫았다 다시 열어 최신 내용을 확인하시길 권장합니다.',
         function(){ doSaveOrgData_(); },
         function(){ badge.textContent='저장 취소됨'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse'); }
@@ -3063,6 +3063,10 @@ function startWithMode(edit){
   editMode = edit;
   document.getElementById('modeLandingOverlay').classList.add('hidden');
   render();
+}
+/** 타이틀을 누르면 시작 모드 선택 화면을 다시 보여줍니다 (지금 보던 내용은 그대로 유지됩니다). */
+function showModeLanding(){
+  document.getElementById('modeLandingOverlay').classList.remove('hidden');
 }
 
 /* 인쇄 시에는 항상 "보기모드"(원본 PDF 형식에 가까운, 테두리·버튼 없는 화면)로
