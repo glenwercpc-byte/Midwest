@@ -48,6 +48,21 @@ html,body{margin:0;padding:0;}
 .mode-3d-btn:active{transform:translateY(7px);}
 .mode-3d-btn.view:active{box-shadow:0 1px 0 #6B7796, 0 3px 8px rgba(0,0,0,.2);}
 .mode-3d-btn.edit:active{box-shadow:0 1px 0 #9C7A2E, 0 3px 8px rgba(0,0,0,.2);}
+
+/* ---------- 보기모드: 조직표·재정 관리 내부도 조회 전용으로 만듭니다 ---------- */
+.org-panel.readonly input,
+.finance-panel.readonly input{
+  pointer-events:none!important;background:transparent!important;border-color:transparent!important;
+}
+.org-panel.readonly .org-person-del,
+.finance-panel.readonly .finance-row-del,
+.finance-panel.readonly .finance-add-row-btn,
+.finance-panel.readonly .finance-add-account-btn{
+  display:none!important;
+}
+.finance-panel.readonly .finance-acccode-btn{
+  pointer-events:none!important;text-decoration:none!important;color:var(--ink)!important;cursor:default!important;
+}
 body{
   font-family:'Noto Sans KR',sans-serif;
   background: linear-gradient(180deg,#EAE3D2 0%, #E3D9C4 100%);
@@ -732,7 +747,7 @@ body{
 </div>
 
 <div id="orgOverlay" class="hidden">
-  <div class="org-panel">
+  <div class="org-panel" id="orgPanelRoot">
     <div class="org-head">
       <h3 id="orgTitle">🗂️ 중서부 한미노회 위원회 조직</h3>
       <div class="org-head-actions">
@@ -801,7 +816,7 @@ body{
 </div>
 
 <div id="financeOverlay" class="hidden">
-  <div class="finance-panel">
+  <div class="finance-panel" id="financePanelRoot">
     <div class="finance-head">
       <h3 id="financeTitle">💰 재정 관리</h3>
       <div class="finance-head-actions">
@@ -2158,6 +2173,10 @@ function updateModeUI(){
   document.getElementById('orgNewBtn').style.display = editMode ? '' : 'none';
   document.getElementById('financeSaveBtn').style.display = editMode ? '' : 'none';
   document.getElementById('financeNewBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('orgSaveBadge').style.display = editMode ? '' : 'none';
+  document.getElementById('financeSaveBadge').style.display = editMode ? '' : 'none';
+  document.getElementById('orgPanelRoot').classList.toggle('readonly', !editMode);
+  document.getElementById('financePanelRoot').classList.toggle('readonly', !editMode);
   updateCancelNewBtn();
 }
 /** 새 회의 작성 도중이면(아직 한 번도 저장 안 됨) "새 회의 취소" 버튼을 보여주고,
