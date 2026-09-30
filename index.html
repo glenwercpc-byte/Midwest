@@ -80,6 +80,9 @@ body{
   color:var(--white);
   flex-wrap:wrap;
 }
+/* 데스크탑: 회순/타이틀/조직/재정관리/보기모드가 한 줄(display:contents)로 합쳐지므로,
+   모드 버튼을 맨 끝(기존 위치)으로 보이게 순서를 조정합니다. */
+#modeBtn{order:5;}
 .toolbar .brand-dropdown{position:relative;margin-right:auto;}
 .toolbar .brand-row{display:flex;align-items:center;gap:10px;}
 .toolbar .brand{
@@ -626,6 +629,7 @@ body{
   .toolbar-row1 .brand-dropdown{flex:1;text-align:center;margin-right:0;}
   .toolbar-row1 .brand-row{justify-content:center;}
   .toolbar-row2{display:flex;flex-wrap:wrap;justify-content:center;width:100%;gap:8px;}
+  #modeBtn{order:0;}
 }
 .page-num{display:none;}
 @media print{
@@ -716,14 +720,14 @@ body{
       </div>
       <button class="tbtn" onclick="openOrgPanel()">🗂️ 중서부 한미노회 조직</button>
       <button class="tbtn" onclick="openFinancePanel()">💰 재정 관리</button>
+      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
     </div>
     <div class="toolbar-row2">
       <button class="tbtn primary" id="newMeetingBtn" onclick="openNewMeetingDialog()">새 회의</button>
       <button class="tbtn" id="cancelNewBtn" onclick="cancelNewMeetingDraft()" style="display:none;">✕ 새 회의 취소</button>
       <span class="savebadge" id="saveBadge">저장 안 됨</span>
       <button class="tbtn" id="saveMeetingBtn" onclick="onSaveButtonClick()">저장</button>
-      <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
-      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
+      <button class="tbtn" id="printMeetingBtn" onclick="window.print()">인쇄 / PDF</button>
     </div>
   </div>
 
@@ -1132,8 +1136,8 @@ function formatCommitteeName(name){
   return esc(name);
 }
 
-function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#e2b04a'; b.classList.remove('loading-pulse'); }
-function markClean(){ dirty=false; var b=document.getElementById('saveBadge'); b.textContent='저장됨'; b.style.color='#B9C2D6'; b.classList.remove('loading-pulse'); }
+function markDirty(){ dirty=true; var b=document.getElementById('saveBadge'); b.textContent='저장 안 된 변경사항 있음'; b.style.color='#FFFFFF'; b.style.fontWeight='700'; b.classList.remove('loading-pulse'); }
+function markClean(){ dirty=false; var b=document.getElementById('saveBadge'); b.textContent='저장됨'; b.style.color='#B9C2D6'; b.style.fontWeight='400'; b.classList.remove('loading-pulse'); }
 
 function setField(path, value){
   var parent = getPath(state, path.slice(0,-1));
@@ -2163,11 +2167,12 @@ function buildFinancePrintView(){
 function toggleEditMode(){ editMode=!editMode; render(); }
 function updateModeUI(){
   var b = document.getElementById('modeBtn');
-  b.textContent = editMode ? '✏️ 편집모드 켜짐' : '🔒 보기모드';
+  b.textContent = editMode ? '✏️ 편집모드' : '🔒 보기모드';
   b.className = 'tbtn ' + (editMode ? 'mode-edit' : 'mode-locked');
   // 보기모드에서는 수정/추가 기능(새 회의, 저장, 조직·재정의 저장/새로 작성)을 감춥니다 — 조회만 가능합니다.
   document.getElementById('newMeetingBtn').style.display = editMode ? '' : 'none';
   document.getElementById('saveMeetingBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('printMeetingBtn').style.display = editMode ? '' : 'none';
   document.getElementById('saveBadge').style.display = editMode ? '' : 'none';
   document.getElementById('orgSaveBtn').style.display = editMode ? '' : 'none';
   document.getElementById('orgNewBtn').style.display = editMode ? '' : 'none';
