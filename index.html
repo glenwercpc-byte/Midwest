@@ -25,6 +25,29 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+
+/* ---------- 시작 화면: 보기모드/편집모드 선택 ---------- */
+#modeLandingOverlay{
+  position:fixed;inset:0;z-index:500;
+  background:linear-gradient(180deg,#EAE3D2 0%, #E3D9C4 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+#modeLandingOverlay.hidden{display:none;}
+.mode-landing-box{text-align:center;padding:20px;}
+.mode-landing-title{font-family:'Noto Serif KR',serif;font-size:24px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.mode-landing-sub{font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--sub);margin-bottom:34px;}
+.mode-landing-buttons{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;}
+.mode-3d-btn{
+  width:180px;padding:30px 18px;border-radius:14px;cursor:pointer;
+  font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;
+  border:none;transition:transform .08s ease, box-shadow .08s ease;
+}
+.mode-3d-btn small{display:block;margin-top:8px;font-size:11.5px;font-weight:400;font-family:'Noto Sans KR',sans-serif;opacity:.9;}
+.mode-3d-btn.view{background:linear-gradient(180deg,#C7CFE0,#909EBC);color:#1E2A44;box-shadow:0 8px 0 #6B7796, 0 12px 20px rgba(0,0,0,.25);}
+.mode-3d-btn.edit{background:linear-gradient(180deg,#E3C066,var(--gold));color:#fff;box-shadow:0 8px 0 #9C7A2E, 0 12px 20px rgba(0,0,0,.25);}
+.mode-3d-btn:active{transform:translateY(7px);}
+.mode-3d-btn.view:active{box-shadow:0 1px 0 #6B7796, 0 3px 8px rgba(0,0,0,.2);}
+.mode-3d-btn.edit:active{box-shadow:0 1px 0 #9C7A2E, 0 3px 8px rgba(0,0,0,.2);}
 body{
   font-family:'Noto Sans KR',sans-serif;
   background: linear-gradient(180deg,#EAE3D2 0%, #E3D9C4 100%);
@@ -650,6 +673,17 @@ body{
 </style>
 </head>
 <body>
+<div id="modeLandingOverlay">
+  <div class="mode-landing-box">
+    <div class="mode-landing-title">중서부 한미노회 회의안</div>
+    <div class="mode-landing-sub">시작할 모드를 선택해주세요</div>
+    <div class="mode-landing-buttons">
+      <button type="button" class="mode-3d-btn view" onclick="startWithMode(false)">🔒 보기 모드<small>조회만 가능</small></button>
+      <button type="button" class="mode-3d-btn edit" onclick="startWithMode(true)">✏️ 편집 모드<small>작성 및 수정</small></button>
+    </div>
+  </div>
+</div>
+
 <div id="app">
   <div class="toolbar">
     <div class="toolbar-row1">
@@ -669,9 +703,10 @@ body{
       <button class="tbtn" onclick="openFinancePanel()">💰 재정 관리</button>
     </div>
     <div class="toolbar-row2">
-      <button class="tbtn primary" onclick="openNewMeetingDialog()">새 회의</button>
+      <button class="tbtn primary" id="newMeetingBtn" onclick="openNewMeetingDialog()">새 회의</button>
+      <button class="tbtn" id="cancelNewBtn" onclick="cancelNewMeetingDraft()" style="display:none;">✕ 새 회의 취소</button>
       <span class="savebadge" id="saveBadge">저장 안 됨</span>
-      <button class="tbtn" onclick="onSaveButtonClick()">저장</button>
+      <button class="tbtn" id="saveMeetingBtn" onclick="onSaveButtonClick()">저장</button>
       <button class="tbtn" onclick="window.print()">인쇄 / PDF</button>
       <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
     </div>
@@ -795,7 +830,7 @@ body{
         <div><input class="dlg-input" id="newFinanceYear" type="number" style="width:120px;"></div>
       </div>
       <div class="dlg-actions">
-        <button type="button" onclick="confirmNewFinance('carry')">전년도 실적을 "전년 실적"으로 이어받기</button>
+        <button type="button" onclick="confirmNewFinance('carry')">전년 실적으로 이어받기</button>
         <button type="button" onclick="confirmNewFinance('blank')">새로 작성 (숫자 없이 시작)</button>
       </div>
     </div>
@@ -2115,6 +2150,22 @@ function updateModeUI(){
   var b = document.getElementById('modeBtn');
   b.textContent = editMode ? '✏️ 편집모드 켜짐' : '🔒 보기모드';
   b.className = 'tbtn ' + (editMode ? 'mode-edit' : 'mode-locked');
+  // 보기모드에서는 수정/추가 기능(새 회의, 저장)을 감춥니다 — 조회만 가능합니다.
+  document.getElementById('newMeetingBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('saveMeetingBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('saveBadge').style.display = editMode ? '' : 'none';
+  updateCancelNewBtn();
+}
+/** 새 회의 작성 도중이면(아직 한 번도 저장 안 됨) "새 회의 취소" 버튼을 보여주고,
+    누르면 새 회의 시작 전에 보던 회의로 돌아갑니다. */
+function updateCancelNewBtn(){
+  var btn = document.getElementById('cancelNewBtn');
+  if(!btn) return;
+  btn.style.display = (editMode && !meetingLoadedUpdatedAt && previousMeetingIdBeforeNew) ? '' : 'none';
+}
+function cancelNewMeetingDraft(){
+  if(!previousMeetingIdBeforeNew){ alert('되돌아갈 이전 회의가 없습니다.'); return; }
+  loadMeeting(previousMeetingIdBeforeNew);
 }
 function toggleTocPanel(){ document.getElementById('tocPanel').classList.toggle('open'); }
 function closeTocPanelMobile(){ if(window.innerWidth<=860){ document.getElementById('tocPanel').classList.remove('open'); } }
@@ -2271,6 +2322,7 @@ function doSaveMeeting_(){
     return jsonp({action:'checkMeetingVersion', id:m.id});
   }).then(function(res){
     if(res && res.ok) meetingLoadedUpdatedAt = res.updatedAt;
+    updateCancelNewBtn();
   }).catch(function(err){
     console.error(err);
     badge.textContent='저장 실패'; badge.style.color='#b45309'; badge.classList.remove('loading-pulse');
@@ -2284,7 +2336,11 @@ function openNewMeetingDialog(){
 }
 function closeNewMeetingDialog(){ document.getElementById('newMeetingOverlay').classList.add('hidden'); }
 
+var previousMeetingIdBeforeNew = null;
+
 function newMeeting(kind){
+  // 취소하면 돌아갈 수 있도록, 지금 보던(서버에 저장돼 있는) 회의의 id를 기억해둡니다.
+  if(state.meeting && state.meeting.id && meetingLoadedUpdatedAt){ previousMeetingIdBeforeNew = state.meeting.id; }
   var m = blankMeeting(kind);
   var n = parseFloat(state.meeting.ordinal);
   if(!isNaN(n)) m.ordinal = String(n+1);
@@ -2410,6 +2466,7 @@ function loadMeeting(id){
     state.meeting = res.meeting;
     if(!state.meeting.kind) state.meeting.kind = 'installation';
     lastSavedMeetingSnapshot = deepClone(state.meeting);
+    previousMeetingIdBeforeNew = null; // 실제 회의로 이동했으니, "새 회의 취소" 되돌아갈 곳은 더 이상 필요 없습니다.
     currentAnchor='cover';
     markClean();
     render();
@@ -2975,9 +3032,15 @@ function updateSearchNavBar(){
 
 
 /* ============================= 초기화 ============================= */
-render();
 markDirty();
 lastSavedMeetingSnapshot = deepClone(state.meeting);
+
+/** 시작 화면에서 보기모드/편집모드를 고르면 그 모드로 처음 화면을 그립니다. */
+function startWithMode(edit){
+  editMode = edit;
+  document.getElementById('modeLandingOverlay').classList.add('hidden');
+  render();
+}
 
 /* 인쇄 시에는 항상 "보기모드"(원본 PDF 형식에 가까운, 테두리·버튼 없는 화면)로
    임시 전환한 뒤 인쇄가 끝나면 원래 모드로 되돌립니다. */
