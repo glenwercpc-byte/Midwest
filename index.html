@@ -737,8 +737,8 @@ body{
       <h3 id="orgTitle">🗂️ 중서부 한미노회 위원회 조직</h3>
       <div class="org-head-actions">
         <span class="savebadge" id="orgSaveBadge">저장 안 됨</span>
-        <button class="tbtn" onclick="saveOrgData()">저장</button>
-        <button class="tbtn" onclick="openNewOrgDialog()">새 조직 작성</button>
+        <button class="tbtn" id="orgSaveBtn" onclick="saveOrgData()">저장</button>
+        <button class="tbtn" id="orgNewBtn" onclick="openNewOrgDialog()">새 조직 작성</button>
         <button class="tbtn" onclick="printOrgPanel()">인쇄 / PDF</button>
         <button class="modal-close" onclick="closeOrgPanel()">✕</button>
       </div>
@@ -806,8 +806,8 @@ body{
       <h3 id="financeTitle">💰 재정 관리</h3>
       <div class="finance-head-actions">
         <span class="savebadge" id="financeSaveBadge">저장 안 됨</span>
-        <button class="tbtn" onclick="saveFinanceData()">저장</button>
-        <button class="tbtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
+        <button class="tbtn" id="financeSaveBtn" onclick="saveFinanceData()">저장</button>
+        <button class="tbtn" id="financeNewBtn" onclick="openNewFinanceDialog()">새 연도 작성</button>
         <button class="tbtn" onclick="printFinancePanel()">인쇄 / PDF</button>
         <button class="modal-close" onclick="closeFinancePanel()">✕</button>
       </div>
@@ -2150,10 +2150,14 @@ function updateModeUI(){
   var b = document.getElementById('modeBtn');
   b.textContent = editMode ? '✏️ 편집모드 켜짐' : '🔒 보기모드';
   b.className = 'tbtn ' + (editMode ? 'mode-edit' : 'mode-locked');
-  // 보기모드에서는 수정/추가 기능(새 회의, 저장)을 감춥니다 — 조회만 가능합니다.
+  // 보기모드에서는 수정/추가 기능(새 회의, 저장, 조직·재정의 저장/새로 작성)을 감춥니다 — 조회만 가능합니다.
   document.getElementById('newMeetingBtn').style.display = editMode ? '' : 'none';
   document.getElementById('saveMeetingBtn').style.display = editMode ? '' : 'none';
   document.getElementById('saveBadge').style.display = editMode ? '' : 'none';
+  document.getElementById('orgSaveBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('orgNewBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('financeSaveBtn').style.display = editMode ? '' : 'none';
+  document.getElementById('financeNewBtn').style.display = editMode ? '' : 'none';
   updateCancelNewBtn();
 }
 /** 새 회의 작성 도중이면(아직 한 번도 저장 안 됨) "새 회의 취소" 버튼을 보여주고,
