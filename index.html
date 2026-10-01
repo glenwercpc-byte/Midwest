@@ -2320,7 +2320,7 @@ function saveMeeting(){
   if(!isConfigured()) return;
   m.id = String(m.ordinal);
   var badge = document.getElementById('saveBadge');
-  badge.textContent='저장 확인 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
+  badge.textContent='저장 확인 중…'; badge.style.color='#FFFFFF'; badge.classList.add('loading-pulse');
   jsonp({action:'checkMeetingVersion', id:m.id}).then(function(res){
     var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
     if(serverUpdatedAt && serverUpdatedAt !== meetingLoadedUpdatedAt){
@@ -2344,7 +2344,7 @@ function saveMeeting(){
 function doSaveMeeting_(){
   var m = state.meeting;
   var badge = document.getElementById('saveBadge');
-  badge.textContent='저장 중…'; badge.style.color='var(--ink-soft)'; badge.classList.add('loading-pulse');
+  badge.textContent='저장 중…'; badge.style.color='#FFFFFF'; badge.classList.add('loading-pulse');
   postToScript({action:'save', meeting:m}).then(function(){
     markClean();
     lastSavedMeetingSnapshot = deepClone(m);
