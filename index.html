@@ -2334,7 +2334,7 @@ function saveMeeting(){
     var serverUpdatedAt = (res && res.ok) ? res.updatedAt : null;
     if(serverUpdatedAt && serverUpdatedAt !== meetingLoadedUpdatedAt){
       showConflictWarning(
-        '다른 사람이 이 회의안(제 '+m.ordinal+'차)을 방금 먼저 저장한 것 같습니다.\n'+
+        '다른 사람이 이 회의안(제 '+m.ordinal+'차)을 방금 수정하여 저장한 것 같습니다.\n'+
         '(마지막 저장 시각: '+serverUpdatedAt+')\n\n'+
         '저장을 계속 진행하시겠습니까?\n'+
         '"취소"를 누르시면 저장하지 않습니다 — 보관함에서 최신 내용을 다시 불러오신 뒤 이어서 수정하시길 권장합니다.',
