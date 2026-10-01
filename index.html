@@ -364,14 +364,15 @@ body{
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
 .dlg-actions button{
-  width:100%;box-sizing:border-box;white-space:normal;word-wrap:break-word;
+  width:100%;min-width:0;max-width:100%;box-sizing:border-box;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;
   padding:10px;border-radius:7px;border:1px solid var(--gold);background:var(--gold-soft);
   color:#4a3a05;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
 }
 .dlg-actions button:hover{background:var(--gold);color:#241C08;}
 .modal-box{
-  background:var(--white);max-width:560px;width:100%;max-height:80vh;overflow-y:auto;
+  background:var(--white);max-width:560px;width:100%;min-width:0;max-height:80vh;overflow-y:auto;
   border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--edge);
+  box-sizing:border-box;
 }
 .modal-head{
   display:flex;align-items:center;justify-content:space-between;
@@ -632,7 +633,7 @@ body{
 .toolbar-row1,.toolbar-row2{display:contents;}
 @media (max-width:860px){
   #tocPanel{position:fixed;left:0;top:54px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .2s ease;width:62%;max-width:280px;box-shadow:8px 0 30px rgba(0,0,0,.25);overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  .modal-box{width:88vw!important;max-width:88vw!important;}
+  .modal-box{width:88vw!important;max-width:88vw!important;min-width:0!important;}
   .modal-head h3{font-size:15px;}
   #tocPanel.open{transform:translateX(0);}
   .page{padding:30px 20px;}
@@ -2289,7 +2290,7 @@ function jsonp(params){
   return new Promise(function(resolve, reject){
     var cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*100000);
     var script = document.createElement('script');
-    var timer = setTimeout(function(){ cleanup(); reject(new Error('요청 시간 초과')); }, 15000);
+    var timer = setTimeout(function(){ cleanup(); reject(new Error('요청 시간 초과')); }, 30000);
     function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
     window[cbName] = function(data){ cleanup(); resolve(data); };
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
