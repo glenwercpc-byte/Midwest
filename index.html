@@ -354,6 +354,7 @@ body{
 .dlg-input{width:100%;padding:8px 10px;border:1px solid var(--edge);border-radius:6px;font-size:13.5px;font-family:'Noto Sans KR',sans-serif;}
 .dlg-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
 .dlg-actions button{
+  width:100%;box-sizing:border-box;white-space:normal;word-wrap:break-word;
   padding:10px;border-radius:7px;border:1px solid var(--gold);background:var(--gold-soft);
   color:#4a3a05;font-weight:700;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
 }
@@ -620,7 +621,7 @@ body{
 
 .toolbar-row1,.toolbar-row2{display:contents;}
 @media (max-width:860px){
-  #tocPanel{position:fixed;left:0;top:54px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .2s ease;max-height:none;width:82%;box-shadow:8px 0 30px rgba(0,0,0,.25);}
+  #tocPanel{position:fixed;left:0;top:54px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .2s ease;width:62%;max-width:280px;box-shadow:8px 0 30px rgba(0,0,0,.25);overflow-y:auto;-webkit-overflow-scrolling:touch;}
   #tocPanel.open{transform:translateX(0);}
   .page{padding:30px 20px;}
   .toolbar .brand small{display:none;}
@@ -720,7 +721,7 @@ body{
       </div>
       <button class="tbtn" onclick="openOrgPanel()">🗂️ 중서부 한미노회 조직</button>
       <button class="tbtn" onclick="openFinancePanel()">💰 재정 관리</button>
-      <button class="tbtn" id="modeBtn" onclick="toggleEditMode()"></button>
+      <button class="tbtn" id="modeBtn" style="cursor:default;"></button>
     </div>
     <div class="toolbar-row2">
       <button class="tbtn primary" id="newMeetingBtn" onclick="openNewMeetingDialog()">새 회의</button>
