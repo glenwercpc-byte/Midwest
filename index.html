@@ -29,6 +29,9 @@ html,body{margin:0;padding:0;}
 /* 회순에서 항목을 누르면 스크롤되는 목표 지점들 — 위에 떠 있는(sticky) 툴바에 가려지지 않도록
    여백을 둡니다. scrollIntoView가 이 여백을 자동으로 반영합니다. */
 #page-cover, #page-header, [id^="sec-"]{scroll-margin-top:62px;}
+.sec-title.active-highlight, .sub-label.active-highlight{
+  outline:1.5px solid #C0392B;outline-offset:4px;border-radius:4px;
+}
 @media (max-width:860px){
   #page-cover, #page-header, [id^="sec-"]{scroll-margin-top:136px;}
 }
@@ -190,7 +193,7 @@ body{
   font-size:14px;color:var(--sub);margin:14px 0 26px;line-height:1.7;
 }
 .cover .rule{width:64px;height:2px;background:var(--gold);margin:22px auto;}
-.cover .dt{font-family:'Noto Serif KR',serif;font-size:17px;margin:20px 0 2px;}
+.cover .dt{font-family:'Noto Serif KR',serif;font-size:17px;margin:20px 0 2px;white-space:pre-wrap;}
 .cover .venue-card{
   margin:34px auto 0;padding:18px 22px;border:1px solid var(--edge);
   background:var(--white);border-radius:6px;max-width:420px;
@@ -1481,7 +1484,16 @@ function gotoSection(k, subIdx){
   var target = (subIdx!==undefined && subIdx!==null && subIdx!=='') ? (k+'-sub-'+subIdx) : k;
   scrollToAnchor(target);
   currentAnchor = target;
+  highlightActiveTitle(target);
   closeTocPanelMobile();
+}
+/** 회순에서 고른 항목의 타이틀을 가는 빨간 박스로 표시해, 어디로 이동했는지 눈에 띄게 합니다. */
+function highlightActiveTitle(anchor){
+  document.querySelectorAll('.active-highlight').forEach(function(el){ el.classList.remove('active-highlight'); });
+  var block = document.getElementById('sec-'+anchor);
+  if(!block) return;
+  var titleEl = block.querySelector('.sec-title') || block.querySelector('.sub-label');
+  if(titleEl) titleEl.classList.add('active-highlight');
 }
 function setupObserver(){
   if(io) io.disconnect();
@@ -2222,7 +2234,7 @@ function onWorkspaceClick(e){
   else if(el.classList.contains('js-remove-sub')) removeSub(el.dataset.skey, parseInt(el.dataset.subidx,10));
   else if(el.classList.contains('js-add-sub')) addSub(el.dataset.skey);
   else if(el.classList.contains('js-goto')) gotoSection(el.dataset.skey, el.dataset.subidx);
-  else if(el.classList.contains('js-load-meeting')) loadMeeting(el.dataset.id);
+  else if(el.classList.contains('js-load-meeting')){ el.classList.add('loading-pulse'); loadMeeting(el.dataset.id); }
 }
 function onWorkspaceInput(e){
   var el = e.target;
