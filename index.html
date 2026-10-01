@@ -650,6 +650,11 @@ body{
   .toolbar,#tocPanel,#modalOverlay,#orgOverlay,#newOrgOverlay,#newMeetingOverlay,#saveChoiceOverlay,#financeOverlay,#newFinanceOverlay,#monthlyEntryOverlay,#newAccountOverlay,#conflictWarnOverlay,.meeting-menu,.line-del,.addline-btn,.addsub-btn,.subdel,.search-nav-bar{display:none!important;}
   #docPanel{padding:0;}
   .page{box-shadow:none;border:none;margin:0;page-break-after:always;}
+  /* 보고서/위원회 타이틀(A. B. C. / I. II. ...)이 페이지 맨 아래 혼자 남고 내용은 다음 페이지로
+     넘어가 잘려 보이지 않도록, 타이틀 바로 뒤에서는 페이지가 끊기지 않게 합니다.
+     공간이 부족하면 타이틀째로 다음 페이지로 넘어갑니다. */
+  .sec-title, .sub-label{page-break-after:avoid;break-after:avoid-page;}
+  .section-block, .sub-block{page-break-inside:auto;}
   .page::before{display:none!important;content:none!important;border:none!important;}
   body{background:#fff;}
   input,textarea{border:none!important;background:transparent!important;box-shadow:none!important;}
